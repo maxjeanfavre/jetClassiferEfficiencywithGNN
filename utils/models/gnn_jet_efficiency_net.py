@@ -94,7 +94,15 @@ class NodeNetwork(nn.Module):
 
 
 class JetEfficiencyNet(nn.Module):
-    def __init__(self, in_features, feats, correction_layers, num_classes=1):
+    def __init__(
+        self,
+        in_features,
+        feats,
+        correction_layers,
+        num_classes,
+        flavour_embedding_num_embeddings,
+        flavour_embedding_dim,
+    ):
 
         """
         Args:
@@ -105,7 +113,10 @@ class JetEfficiencyNet(nn.Module):
 
         super(JetEfficiencyNet, self).__init__()
 
-        self.embedding = nn.Embedding(4, 3)
+        self.embedding = nn.Embedding(
+            num_embeddings=flavour_embedding_num_embeddings,
+            embedding_dim=flavour_embedding_dim,
+        )
 
         self.node_updates = nn.ModuleList()
         self.edge_updates = nn.ModuleList()
