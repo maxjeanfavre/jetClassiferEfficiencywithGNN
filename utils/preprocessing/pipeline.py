@@ -21,7 +21,7 @@ class PreprocessingPipeline(Preprocessor):
         for preprocessor in self.column_preprocessors.values():
             try:
                 preprocessor.check_is_fitted()
-            except NotFittedError as e:
+            except NotFittedError:
                 unfitted_preprocessors.append(preprocessor)
         if unfitted_preprocessors:
             raise NotFittedError(
@@ -82,11 +82,11 @@ class PreprocessingPipeline(Preprocessor):
     def get_new_col_name(self, col_name: Union[str, List[str]]) -> List[str]:
         self.check_is_fitted()
 
-        if type(col_name) == str:
+        if isinstance(col_name, str):
             # get the preprocessor responsible for the column `col_name`
             preprocessor = self.column_preprocessors[col_name]
             new_col_names = preprocessor.get_new_col_name(col_name=col_name)
-        elif type(col_name) == list:
+        elif isinstance(col_name, list):
             col_names = col_name
             new_col_names = [
                 col
@@ -95,7 +95,7 @@ class PreprocessingPipeline(Preprocessor):
             ]  # to unpack the lists already
         else:
             raise ValueError(
-                "col_name has to be either of type str or list, "
+                "col_name has to be and instance of either str or list, "
                 f"was of type {type(col_name)}"
             )
 

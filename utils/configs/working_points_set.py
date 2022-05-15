@@ -56,11 +56,9 @@ class WorkingPointsSetConfig(Config):
     def get_required_columns(self) -> Tuple[str, ...]:
         required_columns = tuple(
             set(
-                [
-                    i
-                    for working_point_config in self.working_points
-                    for i in working_point_config.get_required_columns()
-                ]
+                i
+                for working_point_config in self.working_points
+                for i in working_point_config.get_required_columns()
             )
         )
 

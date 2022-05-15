@@ -38,7 +38,7 @@ class AddPairwiseValueSwapWithinEvent(AddColumns):
                 "Can only do pairwise value swap to JetEventsDataset "
                 "if all events contain two jets. "
                 "Got JetEventsDataset with event_n_jets containing: "
-                f"{unique_event_n_jets}."
+                f"{unique_event_n_jets}"
             )
 
         assert np.array_equal(

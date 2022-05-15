@@ -146,7 +146,7 @@ def train_handler(
     # with open(model_dir_path / utils.model_config_json_filename, "w") as f:
     #     json.dump(obj=model_config.__dict__, fp=f)
 
-    logger.info(f"Training done.")
+    logger.info("Training done")
 
     run_id_handler.prefix = None
     model_dir_path.rename(
@@ -159,6 +159,6 @@ def train_handler(
             mkdir=False,
         )
     )
-    logger.info("Renamed result directory.")
+    logger.info("Renamed result directory")
 
     return model

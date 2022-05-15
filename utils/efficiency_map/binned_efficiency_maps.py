@@ -169,10 +169,10 @@ class BinnedEfficiencyMaps:
         separation_cols: Tuple[str, ...],
         working_points_set_config: WorkingPointsSetConfig,
     ) -> BinnedEfficiencyMaps:
-        histograms = dict()
+        histograms = {}
 
         for working_point_config in working_points_set_config.working_points:
-            working_point_histograms = dict()
+            working_point_histograms = {}
             for separator_values, group_df in jds.df.groupby(
                 by=list(separation_cols), sort=False
             ):
@@ -290,9 +290,9 @@ class BinnedEfficiencyMaps:
     def project(self, projection_variables) -> BinnedEfficiencyMaps:
         # project 'all' and 'passed' histogram along projection
         # variables and recalculate eff from that
-        new_histograms = dict()
+        new_histograms = {}
         for working_point_name, working_point_histograms in self.histograms.items():
-            new_working_point_histograms = dict()
+            new_working_point_histograms = {}
             for (
                 separator_values,
                 separated_histograms,
@@ -306,8 +306,6 @@ class BinnedEfficiencyMaps:
                 hist_passed_projected = hist_passed.project(
                     projection_variables=projection_variables
                 )
-
-                hist_eff_projected = hist_passed_projected / hist_all_projected
 
                 hist_eff_mode_projected = compute_mode_bayesian_efficiency(
                     k=hist_passed_projected, n=hist_all_projected
@@ -342,7 +340,7 @@ class BinnedEfficiencyMaps:
     def without_under_over_flow(self) -> BinnedEfficiencyMaps:
         new_histograms = {}
         for working_point_name, working_point_histograms in self.histograms.items():
-            new_working_point_histograms = dict()
+            new_working_point_histograms = {}
             for (
                 separator_values,
                 separated_histograms,

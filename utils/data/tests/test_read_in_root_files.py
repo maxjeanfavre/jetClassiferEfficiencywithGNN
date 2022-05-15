@@ -164,7 +164,7 @@ class TestReadInRootFiles:
 
 
 class TestEqualityOfPandasAndNumpyReadIn:
-    @pytest.mark.parametrize("num_workers", [1, 2, 4])
+    @pytest.mark.parametrize("num_workers", [1, 2])
     @pytest.mark.parametrize(
         "expressions",
         [

@@ -138,7 +138,7 @@ def get_slurm_kwargs(
                 time_hours = 0.5
                 mem_gb = 60
         else:
-            raise ValueError(f"Unknown model: {model}.")
+            raise ValueError(f"Unknown model: {model}")
     elif task == "save_predictions":
         job_name += (
             f"_{dataset}_"
@@ -263,8 +263,10 @@ def get_slurm_kwargs(
 def submit_to_slurm(commands: List[str], slurm_kwargs: Dict[str, str]):
     try:
         subprocess.run(["sinfo", "--version"])
-    except FileNotFoundError:
-        raise OSError("Slurm seems to be not available. Make sure to run this on T3")
+    except FileNotFoundError as file_not_found_error:
+        raise OSError(
+            "Slurm seems to be not available. Make sure to run this on T3"
+        ) from file_not_found_error
 
     s = "sbatch <<'EOT'" + "\n"
     s += "#!/bin/bash" + "\n"

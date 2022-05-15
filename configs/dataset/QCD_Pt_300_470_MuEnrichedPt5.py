@@ -10,7 +10,7 @@ dataset_config = DatasetConfig(
     ),
     key="Events;1",
     file_limit=None,
-    filename_pattern="^jetObservables_nanoskim_\d+.root$",
+    filename_pattern=r"^jetObservables_nanoskim_\d+.root$",
     branches_to_simulate=[
         {
             "name": "Jet_Pt",

@@ -16,7 +16,7 @@ def plot_predictions_histogram(
         ax.hist(
             x=df[col],
             bins=np.linspace(0, 1, n_bins + 1),
-            label=f"{col} Sum: {df[col].sum():.1f}. NaN: {df[col].isna().sum()}.",
+            label=f"{col} Sum: {df[col].sum():.1f}. NaN: {df[col].isna().sum()}",
             histtype="step",
         )
 

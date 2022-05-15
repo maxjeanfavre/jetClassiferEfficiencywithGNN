@@ -109,7 +109,7 @@ def save_predictions_handler(
         **model_config.model_predict_kwargs,
     )
     assert len(predictions) == len(working_points_set_config.working_points)
-    logger.debug("Got predictions for all working points.")
+    logger.debug("Got predictions for all working points")
 
     for working_point_config, working_point_predictions in zip(
         working_points_set_config.working_points, predictions
@@ -127,8 +127,6 @@ def save_predictions_handler(
             event_n_jets=jds_test.event_n_jets,
         )
 
-        logger.debug(
-            f"Saved predictions of working point: {working_point_config.name}."
-        )
+        logger.debug(f"Saved predictions of working point: {working_point_config.name}")
 
-    logger.info("Done with saving predictions.")
+    logger.info("Done with saving predictions")

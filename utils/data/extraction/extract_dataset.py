@@ -66,7 +66,7 @@ def extract_dataset(
         )
         branches = list(set(branches) - branches_to_not_read_in)
 
-    logger.trace(f"Starting reading in root files.")
+    logger.trace("Starting reading in root files")
     df = read_in_root_files_in_chunks(
         path=dataset_config.path,
         filenames=dataset_config.filenames,
@@ -88,21 +88,19 @@ def extract_dataset(
             df[col] = df.eval(expr=expr)
 
     memory_usage = df.memory_usage(deep=True).sum()
-    logger.trace(
-        f"Memory usage of df from root files: {memory_usage / (1024 ** 3)} GB."
-    )
+    logger.trace(f"Memory usage of df from root files: {memory_usage / (1024 ** 3)} GB")
 
-    logger.trace(f"Getting event_n_jets.")
+    logger.trace("Getting event_n_jets")
     event_n_jets = reconstruct_event_n_jets_from_groupby_zeroth_level_values(df=df)
 
-    logger.debug(f"Saving event_n_jets.")
+    logger.debug("Saving event_n_jets")
     np.save(
         file=extraction_dir_path
         / utils.filenames.dataset_extraction_event_n_jets_filename,
         arr=event_n_jets,
     )
 
-    logger.debug(f"Saving feather file.")
+    logger.debug("Saving feather file")
     df.reset_index(drop=True).to_feather(
         path=extraction_dir_path / utils.filenames.dataset_extraction_filename,
         version=2,
@@ -123,11 +121,11 @@ def extract_dataset(
     memory_usage_read_in = df_read_in.memory_usage(deep=True).sum()
     logger.debug(
         "Memory usage of df read in from feather file: "
-        f"{memory_usage_read_in / (1024 ** 3)} GB."
+        f"{memory_usage_read_in / (1024 ** 3)} GB"
     )
 
     memory_usage_equal = memory_usage == memory_usage_read_in
-    logger.debug(f"Equality memory usage: {memory_usage_equal}.")
+    logger.debug(f"Equality memory usage: {memory_usage_equal}")
 
     df_equal = df.equals(df_read_in)
     logger.debug(f"Equality dfs: {df_equal}")
@@ -135,7 +133,7 @@ def extract_dataset(
     if not event_n_jets_equal or not memory_usage_equal or not df_equal:
         logger.error(
             "Result of reading in the extraction does "
-            "not fulfill equality requirements."
+            "not fulfill equality requirements"
         )
 
         run_id_handler.prefix = "failed"
@@ -146,12 +144,12 @@ def extract_dataset(
                 mkdir=False,
             )
         )
-        logger.info("Renamed result directory.")
-        logger.error(f"Failed extraction.")
+        logger.debug("Renamed result directory")
+        logger.error("Failed extraction")
 
         raise ValueError(
             "Failed extraction. Result of reading in the extraction "
-            "does not fulfill equality requirements."
+            "does not fulfill equality requirements"
         )
     else:
         run_id_handler.prefix = None
@@ -162,5 +160,5 @@ def extract_dataset(
                 mkdir=False,
             )
         )
-        logger.debug("Renamed result directory.")
-        logger.info(f"Successful extraction.")
+        logger.debug("Renamed result directory")
+        logger.info("Successful extraction")

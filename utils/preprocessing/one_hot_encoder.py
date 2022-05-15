@@ -22,11 +22,11 @@ class OneHotEncoder(Preprocessor):
         # if not fitted:  # 'not fitted' is True when fitted is empty
         try:
             sklearn.utils.validation.check_is_fitted(estimator=self.enc)
-        except sklearn.exceptions.NotFittedError:
+        except sklearn.exceptions.NotFittedError as sklearn_not_fitted_error:
             raise NotFittedError(
                 f"This {type(self).__name__} instance is not fitted yet. "
                 f"Call 'fit' with appropriate arguments first"
-            )
+            ) from sklearn_not_fitted_error
 
     def fit(self, data):
         self.check_data(data=data)

@@ -52,7 +52,7 @@ class ModelPredictions:
     def save(
         self, dir_path: pathlib.Path, filename: str, event_n_jets: Optional[np.ndarray]
     ) -> None:
-        d = dict()
+        d = {}
 
         if event_n_jets is not None:
             d["event_n_jets"] = event_n_jets

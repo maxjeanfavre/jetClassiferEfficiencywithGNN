@@ -230,7 +230,7 @@ def main():
                     prediction_dataset_handling_config=prediction_dataset_handling_config,
                 )
             else:
-                raise ValueError("You shouldn't reach this point.")
+                raise ValueError("You shouldn't reach this point")
         elif task == "evaluate":
             prediction_dataset_handling = args.prediction_dataset_handling
             evaluation_model_selection = args.evaluation_model_selection
@@ -270,13 +270,13 @@ def main():
                 evaluation_data_manipulation_configs=evaluation_data_manipulation_configs,
             )
         else:
-            raise ValueError("You shouldn't reach this point.")
+            raise ValueError("You shouldn't reach this point")
 
     elif task == "extract":
         extract_dataset(dataset_config=dataset_config)
 
     else:
-        raise ValueError("You shouldn't reach this point.")
+        raise ValueError("You shouldn't reach this point")
 
 
 if __name__ == "__main__":

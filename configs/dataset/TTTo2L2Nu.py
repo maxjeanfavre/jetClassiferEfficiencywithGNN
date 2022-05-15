@@ -10,7 +10,7 @@ dataset_config = DatasetConfig(
     ),
     key="Events;1",
     file_limit=None,
-    filename_pattern="^tree_\d+.root$",
+    filename_pattern=r"^tree_\d+.root$",
     branches_to_simulate=None,
     filenames=(
         "tree_1.root",

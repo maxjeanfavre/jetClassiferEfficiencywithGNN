@@ -218,7 +218,7 @@ class TestHistogram:
             for i, v in r.items():
                 bin_idx = None
                 for j in range(len(bins[i]) - 1):
-                    if bins[i][j] <= v and v < bins[i][j + 1]:
+                    if bins[i][j] <= v < bins[i][j + 1]:
                         bin_idx = j
                 if bin_idx is None:
                     raise ValueError("Didn't find the bin")

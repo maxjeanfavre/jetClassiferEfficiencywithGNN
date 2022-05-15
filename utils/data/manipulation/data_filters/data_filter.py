@@ -39,7 +39,7 @@ class DataFilter(DataManipulator):
             f"{n_events_after} / {n_events_before} "
             f"({n_events_after / n_events_before * 100:.2f} %) of events, "
             f"{n_jets_after} / {n_jets_before} "
-            f"({n_jets_after / n_jets_before * 100:.2f} %) of jets."
+            f"({n_jets_after / n_jets_before * 100:.2f} %) of jets"
         )
 
     def _manipulate_inplace(self, jds: JetEventsDataset) -> None:

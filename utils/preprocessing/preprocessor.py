@@ -16,7 +16,7 @@ class Preprocessor:
                 raise ValueError(
                     f"Expected 2D array, got {data.ndim}D array instead:"
                     "\n"
-                    f"array={data}."
+                    f"array={data}"
                     "\n"
                     "Possible solution: Reshape using array.reshape(-1, 1)"
                 )

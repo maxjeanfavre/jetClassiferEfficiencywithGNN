@@ -41,5 +41,5 @@ void downsample() {
         }
     }
 
-    std::cout << "Done." << std::endl;
+    std::cout << "Done" << std::endl;
 }

@@ -17,7 +17,7 @@ class Histogram:
         self._edges = None
         self._variables = None
 
-        self.edges = tuple([np.copy(i) for i in edges])
+        self.edges = tuple(np.copy(i) for i in edges)
         self.variables = tuple(variables)
         self.h = np.copy(h)
 
@@ -81,7 +81,7 @@ class Histogram:
             )
         if not all(np.all(np.diff(e) > 0) for e in value):
             raise ValueError(
-                "The entries of edges have to be strictly increasing." f"Got: {value}"
+                f"The entries of edges have to be strictly increasing. Got: {value}"
             )
         self._edges = value
 
@@ -231,7 +231,7 @@ class Histogram:
             if (
                 self.variables == other.variables
                 and len(self.edges) == len(other.edges)
-                and all([np.array_equal(i, j) for i, j in zip(self.edges, other.edges)])
+                and all(np.array_equal(i, j) for i, j in zip(self.edges, other.edges))
             ):
                 h = self.h - other.h
                 histogram = Histogram(h=h, edges=self.edges, variables=self.variables)
@@ -246,7 +246,7 @@ class Histogram:
             if (
                 self.variables == other.variables
                 and len(self.edges) == len(other.edges)
-                and all([np.array_equal(i, j) for i, j in zip(self.edges, other.edges)])
+                and all(np.array_equal(i, j) for i, j in zip(self.edges, other.edges))
             ):
                 h = self.h * other.h
                 histogram = Histogram(h=h, edges=self.edges, variables=self.variables)
@@ -267,7 +267,7 @@ class Histogram:
             if (
                 self.variables == other.variables
                 and len(self.edges) == len(other.edges)
-                and all([np.array_equal(i, j) for i, j in zip(self.edges, other.edges)])
+                and all(np.array_equal(i, j) for i, j in zip(self.edges, other.edges))
                 and self.h.shape == other.h.shape
             ):
                 # h = self.h / other.h

@@ -386,7 +386,7 @@ class GNN(Model):
 
             self.estimator.train()
 
-            for i, (x, _, target) in enumerate(tqdm(dataloader_train, file=sys.stdout)):
+            for x, _, target in tqdm(dataloader_train, file=sys.stdout):
                 if use_gpu:
                     x = x.to(device)
                     target = target.to(device)
@@ -405,8 +405,8 @@ class GNN(Model):
                 epoch_train_loss += loss.item()
 
                 grad_sum = 0
-                for i in self.estimator.parameters():
-                    grad_sum += i.grad.pow(2).sum()
+                for param in self.estimator.parameters():
+                    grad_sum += param.grad.pow(2).sum()
                 writer.add_scalar(
                     tag="grad_sum",
                     scalar_value=grad_sum,
@@ -431,9 +431,7 @@ class GNN(Model):
             self.estimator.eval()
 
             with torch.no_grad():
-                for i, (x, _, target) in enumerate(
-                    tqdm(dataloader_validation, file=sys.stdout)
-                ):
+                for x, _, target in tqdm(dataloader_validation, file=sys.stdout):
                     if use_gpu:
                         x = x.to(device)
                         target = target.to(device)
@@ -487,7 +485,7 @@ class GNN(Model):
                 if working_point_set_idx + 1 != self.old_mode_wp_idx:
                     raise ValueError(
                         "Model was not trained for the requested working point: "
-                        f"{working_point_config.name}."
+                        f"{working_point_config.name}"
                     )
 
         # calculate delta_r values here, so they are not calculated
@@ -510,11 +508,8 @@ class GNN(Model):
             df=self.preprocessing_pipeline.transform(
                 df=jds.df,
                 only_cols=[
-                    col
-                    for col in [
-                        *self.node_features_cols,
-                        self.flavour_col,
-                    ]
+                    *self.node_features_cols,
+                    self.flavour_col,
                 ],
             ),
         )
@@ -563,7 +558,7 @@ class GNN(Model):
         raw_outputs = []
 
         with torch.no_grad():
-            for i, (x, _, _) in enumerate(tqdm(dataloader, file=sys.stdout)):
+            for _, (x, _, _) in enumerate(tqdm(dataloader, file=sys.stdout)):
                 if use_gpu:
                     x = x.to(device)
 
@@ -710,8 +705,8 @@ class TorchDataset(Dataset):
         assert len(flavour_index) == jds.n_jets
 
         assert type(delta_r) == list
-        assert all([type(i) == np.ndarray for i in delta_r])
-        assert all([i.ndim == 1 for i in delta_r])
+        assert all(isinstance(i, np.ndarray) for i in delta_r)
+        assert all(i.ndim == 1 for i in delta_r)
         assert np.array_equal(
             np.array([len(i) for i in delta_r]),
             (jds.event_n_jets * (jds.event_n_jets - 1)),
@@ -780,7 +775,7 @@ class TorchDataset(Dataset):
         n_jets = self.event_n_jets[idx]
 
         # list of indices of jets in the requested event
-        r = [i for i in range(jets_offset, jets_offset + n_jets)]
+        r = list(range(jets_offset, jets_offset + n_jets))
 
         node_features = self.node_features_tensor[r]
         flavour_indices = self.flavour_index_tensor[r]

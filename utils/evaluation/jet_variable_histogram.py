@@ -19,7 +19,7 @@ def create_jet_variable_histogram(
     bins: Union[int, np.ndarray] = 20,
     comparison_col: Optional[str] = None,
 ) -> Dict:
-    evaluation_data = dict()
+    evaluation_data = {}
 
     for flavour in [
         "inclusive",
@@ -56,7 +56,7 @@ def create_jet_variable_histogram(
 
         plt.close(fig)
 
-        evaluation_data[title_snake_case] = dict()
+        evaluation_data[title_snake_case] = {}
 
         if comparison_col is not None:
             for name in hist_data.keys():

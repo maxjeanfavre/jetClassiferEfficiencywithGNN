@@ -27,7 +27,7 @@ class DataManipulator:
         self._manipulate_inplace(jds=jds)
         e = time.time()
 
-        logger.debug(f"Data Manipulator: {self.name} done in {e - s:.2f} seconds.")
+        logger.debug(f"Data Manipulator: {self.name} done in {e - s:.2f} seconds")
 
     def _manipulate_inplace(self, jds: JetEventsDataset) -> None:
         raise NotImplementedError

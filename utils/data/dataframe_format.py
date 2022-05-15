@@ -28,20 +28,20 @@ def get_idx_from_event_n_jets(event_n_jets: np.ndarray):
         names=("entry", "subentry"),
     )
 
-    assert all([dtype == np.int64 for dtype in idx.dtypes])
+    assert all(dtype == np.int64 for dtype in idx.dtypes)
 
     return idx
 
 
 def check_df(df: pd.DataFrame):
     # TODO(test): test it
-    # logger.info("Starting check_df.")
+    # logger.info("Starting check_df")
 
     # make sure we have a two level index
     assert df.index.nlevels == 2
 
     # make sure we have an int64 index
-    assert all([dtype == np.int64 for dtype in df.index.dtypes.to_numpy()])
+    assert all(dtype == np.int64 for dtype in df.index.dtypes.to_numpy())
 
     # make sure the index levels are named correctly
     assert df.index.names == ["entry", "subentry"]
@@ -81,7 +81,7 @@ def check_df(df: pd.DataFrame):
     )
     del expected_first_level_values
 
-    # logger.debug("Done with check_df.")
+    # logger.debug("Done with check_df")
 
 
 def get_zero_level_values_from_event_n_jets(event_n_jets: np.ndarray):

@@ -109,7 +109,7 @@ def read_in_root_files_via_pd(
         )
 
     if not isinstance(res, pd.DataFrame):
-        if isinstance(res, tuple) and all([isinstance(i, pd.DataFrame) for i in res]):
+        if isinstance(res, tuple) and all(isinstance(i, pd.DataFrame) for i in res):
             raise TTreeBranchesRowLengthsMismatchError(
                 "Implied number of jets per event do not match "
                 f"when reading in expressions {expressions} from files {files}. "
@@ -158,13 +158,11 @@ def read_in_root_files_via_np(
     }
     first_key, *other_keys = event_n_jets_from_jagged_branches
     if not all(
-        [
-            np.array_equal(
-                a1=event_n_jets_from_jagged_branches[first_key],
-                a2=event_n_jets_from_jagged_branches[k],
-            )
-            for k in other_keys
-        ]
+        np.array_equal(
+            a1=event_n_jets_from_jagged_branches[first_key],
+            a2=event_n_jets_from_jagged_branches[k],
+        )
+        for k in other_keys
     ):
         groups = []
         for (

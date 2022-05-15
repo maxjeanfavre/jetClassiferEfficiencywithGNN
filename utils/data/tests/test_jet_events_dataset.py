@@ -43,7 +43,7 @@ class TestJetEventsDatasetSplitData:
 
             jds = JetEventsDataset(df=df)
 
-            if mode == "train_only" or mode == "test_only":
+            if mode in ("train_only", "test_only"):
                 if mode == "train_only":
                     return_train = True
                     return_test = False
@@ -73,7 +73,7 @@ class TestJetEventsDatasetSplitData:
                 return_train = True
                 return_test = True
 
-                if train_size == 0 or train_size == 1:
+                if train_size in (0, 1):
                     pass
                 else:
                     jds_train, jds_test = jds.split_data(
@@ -181,7 +181,7 @@ class TestJetEventsDatasetGetBootstrapSample:
 
             df = pd.concat(
                 objs=[jds.df.loc[x] for x in bootstrap_selection],
-                keys=[i for i in range(len(bootstrap_selection))],
+                keys=list(range(len(bootstrap_selection))),
                 sort=False,
             )
             df.index.names = jds_bootstrap.df.index.names

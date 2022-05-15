@@ -86,7 +86,7 @@ class JetEventsDataset:
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Argument must be a pd.DataFrame")
 
-        logger.trace(f"Checking df")
+        logger.trace("Checking df")
         s = time.time()
         check_df(df=df)
         e = time.time()
@@ -140,7 +140,7 @@ class JetEventsDataset:
                 f"{n_events_after} / {n_events_before} "
                 f"({n_events_after / n_events_before * 100:.2f} %) of events, "
                 f"{n_jets_after} / {n_jets_before} "
-                f"({n_jets_after / n_jets_before * 100:.2f} %) of jets."
+                f"({n_jets_after / n_jets_before * 100:.2f} %) of jets"
             )
 
     def split_data(
@@ -275,7 +275,7 @@ class JetEventsDataset:
                 logger.trace("Creating inst")
                 inst_test = JetEventsDataset(df=test_df)
 
-            logger.debug(f"Done with split_data.")
+            logger.debug("Done with split_data")
             if return_train and return_test:
                 return inst_train, inst_test
             elif return_train and not return_test:  # explicit here, unnecessary I know

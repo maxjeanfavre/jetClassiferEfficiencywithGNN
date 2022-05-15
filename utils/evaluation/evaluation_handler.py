@@ -39,7 +39,7 @@ def evaluation_handler(
     #     base_filename=utils.filenames.train_log_filename,
     # )
 
-    logger.info("Evaluation starts.")
+    logger.info("Evaluation starts")
 
     run_id = RunIdHandler.generate_run_id(bootstrap=False)
 
@@ -281,7 +281,7 @@ def evaluation_handler(
 
             # evaluation part
 
-            evaluation_data_collection = dict()
+            evaluation_data_collection = {}
 
             # for model_config in model_configs:
             #     model_prediction_variance(jds=jds_test, model_config=model_config)

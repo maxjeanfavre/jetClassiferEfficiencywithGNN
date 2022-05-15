@@ -31,9 +31,7 @@ class TestGetBinEdgesEquidistant:
         overflow: bool,
     ):
         if lower > upper:
-            tmp = lower
-            lower = upper
-            upper = tmp
+            lower, upper = upper, lower
 
         bin_edges = get_bin_edges_equidistant(
             lower=lower,

@@ -10,6 +10,6 @@ def hash_df(df: pd.DataFrame):
     ).hexdigest()
     columns_hash = hashlib.sha256(df.columns.values).hexdigest()
 
-    hash = hashlib.sha256((content_hash + columns_hash).encode()).hexdigest()
+    hash_value = hashlib.sha256((content_hash + columns_hash).encode()).hexdigest()
 
-    return hash
+    return hash_value

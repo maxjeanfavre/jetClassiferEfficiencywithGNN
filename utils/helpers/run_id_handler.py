@@ -96,7 +96,7 @@ class RunIdHandler:
 
         run_ids = sorted(run_ids)
 
-        logger.trace(f"Found {len(run_ids)} start_times in {dir_path}.")
+        logger.trace(f"Found {len(run_ids)} start_times in {dir_path}")
 
         if only_latest:
             return [run_ids[-1]]

@@ -47,23 +47,23 @@ def read_in_extract(
             branches = [branches]
         branches = list(set(branches))
 
-    logger.trace(f"Starting reading of feather file")
+    logger.trace("Starting reading of feather file")
     df = pd.read_feather(
         path=extraction_dir_path / utils.filenames.dataset_extraction_filename,
         columns=branches,
         use_threads=True,
     )
 
-    logger.trace(f"Starting reading of event_n_jets")
+    logger.trace("Starting reading of event_n_jets")
     event_n_jets = np.load(
         file=extraction_dir_path
         / utils.filenames.dataset_extraction_event_n_jets_filename
     )
 
-    logger.trace(f"Generating index")
+    logger.trace("Generating index")
     idx = get_idx_from_event_n_jets(event_n_jets=event_n_jets)
 
-    logger.trace(f"Setting generated index")
+    logger.trace("Setting generated index")
     df.index = idx
 
     logger.trace("Done with read_in_extract")

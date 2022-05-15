@@ -52,7 +52,7 @@ def plot_histogram(
 
     if comparison_name is not None:
         if comparison_name not in weights:
-            raise ValueError(f"'comparison_name' must be a key in 'weights'")
+            raise ValueError("'comparison_name' must be a key in 'weights'")
 
     if isinstance(bins, int):
         bin_edges = get_bin_edges_equidistant(

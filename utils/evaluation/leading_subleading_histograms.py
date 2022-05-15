@@ -63,7 +63,7 @@ def create_leading_subleading_histograms(
         mode="foo",
     )
 
-    evaluation_data = dict()
+    evaluation_data = {}
 
     for flavour_selection in [
         "inclusive",
@@ -185,7 +185,7 @@ def create_leading_subleading_histograms(
 
             plt.close(fig)
 
-            evaluation_data[title_snake_case] = dict()
+            evaluation_data[title_snake_case] = {}
 
             if comparison_col is not None:
                 for name in hist_data.keys():
