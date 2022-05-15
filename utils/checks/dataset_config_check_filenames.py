@@ -50,7 +50,7 @@ def check_dataset_config_filenames(dataset: str):
 
         logger.debug(
             f"Found {len(sorted_filenames)} files for dataset {dataset_config.name} "
-            f"at {dataset_config.path}"
+            f"at {path}"
         )
 
         if sorted_filenames != list(dataset_config.filenames):
