@@ -87,6 +87,7 @@ def get_slurm_kwargs(
     prediction_dataset_handling: Optional[str],
     evaluation_model_selection: Optional[str],
     evaluation_data_manipulation_list: Optional[List[str]],
+    array: Optional[int],
 ):
     job_name = task
 
@@ -257,6 +258,10 @@ def get_slurm_kwargs(
     if gres is not None:
         res["gres"] = gres
 
+    if array is not None:
+        assert isinstance(array, int)
+        res["array"] = f"0-{array - 1}"
+
     return res
 
 
@@ -305,6 +310,7 @@ def submit_to_t3(
     evaluation_model_selection: Optional[str],
     evaluation_data_manipulation_list: Optional[List[str]],
     save_predictions_after_training_prediction_dataset_handling: Optional[List[str]],
+    array: Optional[int],
 ):
     commands = get_commands(
         task=task,
@@ -331,6 +337,7 @@ def submit_to_t3(
         prediction_dataset_handling=prediction_dataset_handling,
         evaluation_model_selection=evaluation_model_selection,
         evaluation_data_manipulation_list=evaluation_data_manipulation_list,
+        array=array,
     )
 
     submit_to_slurm(
@@ -361,6 +368,13 @@ def main():
         help="names of the prediction dataset handling config",
     )
 
+    parser_train.add_argument(
+        "--array",
+        type=int,
+        choices=range(2, 15 + 1),
+        help="spawn a job array",
+    )
+
     args = parser.parse_args()
 
     task = args.task
@@ -373,6 +387,11 @@ def main():
         )
     except AttributeError:
         save_predictions_after_training_prediction_dataset_handling = None
+
+    try:
+        array = args.array
+    except AttributeError:
+        array = None
 
     try:
         dataset_handling = args.dataset_handling
@@ -426,6 +445,7 @@ def main():
         evaluation_model_selection=evaluation_model_selection,
         evaluation_data_manipulation_list=evaluation_data_manipulation_list,
         save_predictions_after_training_prediction_dataset_handling=save_predictions_after_training_prediction_dataset_handling,
+        array=array,
     )
 
 

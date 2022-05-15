@@ -10,6 +10,7 @@ def log_environment():
         "HOME",
         "USER",
         "SLURM_JOB_ID",
+        "SLURM_ARRAY_TASK_ID",
         "HOSTNAME",
         "CUDA_VISIBLE_DEVICES",
     ]
