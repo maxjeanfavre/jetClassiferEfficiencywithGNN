@@ -4,7 +4,12 @@ import torch.nn as nn
 
 class EdgeNetwork(nn.Module):
     def __init__(
-        self, in_features, outfeatures, output_name="edge_hidden_state", first=False
+        self,
+        in_features,
+        outfeatures,
+        dropout,
+        output_name="edge_hidden_state",
+        first=False,
     ):
 
         """
@@ -20,6 +25,7 @@ class EdgeNetwork(nn.Module):
         midfeatures = int((2 * in_features + outfeatures) / 2)
         self.net = nn.Sequential(
             nn.Linear(2 * in_features + 1, midfeatures),
+            nn.Dropout(p=dropout),
             nn.ReLU(),
             nn.Linear(midfeatures, outfeatures),
             nn.Tanh(),
@@ -53,7 +59,9 @@ class EdgeNetwork(nn.Module):
 
 
 class NodeNetwork(nn.Module):
-    def __init__(self, original_in_features, in_features, out_features, first=False):
+    def __init__(
+        self, original_in_features, in_features, out_features, dropout, first=False
+    ):
         super(NodeNetwork, self).__init__()
 
         self.first = first
@@ -63,12 +71,14 @@ class NodeNetwork(nn.Module):
 
         self.net1 = nn.Sequential(
             nn.Linear(original_in_features + in_features, mid_features, bias=True),
+            nn.Dropout(p=dropout),
             nn.ReLU(),
             nn.Linear(mid_features, out_features, bias=True),
             nn.Tanh(),
         )
         self.net2 = nn.Sequential(
             nn.Linear(out_features, out_features, bias=True),
+            nn.Dropout(p=dropout),
             nn.ReLU(),
             nn.Linear(out_features, out_features, bias=True),
             nn.Tanh(),
@@ -102,6 +112,9 @@ class JetEfficiencyNet(nn.Module):
         num_classes,
         flavour_embedding_num_embeddings,
         flavour_embedding_dim,
+        edge_network_dropout,
+        node_network_dropout,
+        eff_correction_dropout,
     ):
 
         """
@@ -121,15 +134,37 @@ class JetEfficiencyNet(nn.Module):
         self.node_updates = nn.ModuleList()
         self.edge_updates = nn.ModuleList()
 
-        edge_network = EdgeNetwork(in_features, int(feats[0] / 2), first=True)
-        node_network = NodeNetwork(in_features, 0, feats[0], first=True)
+        edge_network = EdgeNetwork(
+            in_features=in_features,
+            outfeatures=int(feats[0] / 2),
+            dropout=edge_network_dropout,
+            first=True,
+        )
+        node_network = NodeNetwork(
+            original_in_features=in_features,
+            in_features=0,
+            out_features=feats[0],
+            dropout=node_network_dropout,
+            first=True,
+        )
 
         self.node_updates.append(node_network)
         self.edge_updates.append(edge_network)
 
         for i in range(1, len(feats)):
-            edge_network = EdgeNetwork(in_features + feats[i - 1], int(feats[i] / 2))
-            node_network = NodeNetwork(in_features, feats[i - 1], feats[i])
+            edge_network = EdgeNetwork(
+                in_features=in_features + feats[i - 1],
+                outfeatures=int(feats[i] / 2),
+                dropout=edge_network_dropout,
+                first=False,
+            )
+            node_network = NodeNetwork(
+                original_in_features=in_features,
+                in_features=feats[i - 1],
+                out_features=feats[i],
+                dropout=node_network_dropout,
+                first=False,
+            )
 
             self.node_updates.append(node_network)
             self.edge_updates.append(edge_network)
@@ -144,6 +179,8 @@ class JetEfficiencyNet(nn.Module):
             eff_correction_layers.append(
                 nn.Linear(correction_layers[hidden_i - 1], correction_layers[hidden_i])
             )
+            if eff_correction_dropout is not None:
+                eff_correction_layers.append(nn.Dropout(p=eff_correction_dropout))
             eff_correction_layers.append(nn.ReLU())
 
         eff_correction_layers.append(nn.Linear(correction_layers[-1], num_classes))

@@ -1,0 +1,23 @@
+name: gnn_efficiency_no_cuda_m1
+channels:
+  - default
+dependencies:
+  - python=3.8
+  - numpy>=1.10.0
+  - pandas>=1
+  - matplotlib
+  - scikit-learn
+  - tqdm
+  - numba
+  - pylint
+  - pytest
+  - loguru
+  - memory_profiler
+  - pyarrow>=6
+  - tensorboard
+  - conda-forge::uproot=4.1.8
+  - dglteam::dgl
+  - natsort
+  - pip
+  - pip:  # have to install torch through pip on M1 with miniconda through Rosetta 2, Intel MKL error otherwise
+      - torch==1.10.2
