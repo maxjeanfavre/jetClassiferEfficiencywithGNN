@@ -3,12 +3,16 @@ from configs.model.eff_map_pt_eta import (
     model_config as eff_map_pt_eta_model_config,
 )
 from configs.model.gnn import model_config as gnn_model_config
+from configs.model.gnn_dropout_50 import model_config as gnn_dropout_50_model_config
+from configs.model.gnn_variables_1 import (
+    model_config as gnn_variables_1_model_config,
+)
 from utils.configs.evaluation_model import EvaluationModelConfig
 from utils.configs.evaluation_model_selection import EvaluationModelSelectionConfig
 
 
 evaluation_model_selection_config = EvaluationModelSelectionConfig(
-    name=f"{gnn_model_config.name}_mean",
+    name="mean_gnn_gnn_dropout_50_gnn_variables_1",
     evaluation_model_configs=[
         EvaluationModelConfig(
             model_config=direct_tagging_model_config,
@@ -24,6 +28,18 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
         ),
         EvaluationModelConfig(
             model_config=gnn_model_config,
+            run_selection="all",
+            run_aggregation="mean",
+            is_comparison_base=False,
+        ),
+        EvaluationModelConfig(
+            model_config=gnn_dropout_50_model_config,
+            run_selection="all",
+            run_aggregation="mean",
+            is_comparison_base=False,
+        ),
+        EvaluationModelConfig(
+            model_config=gnn_variables_1_model_config,
             run_selection="all",
             run_aggregation="mean",
             is_comparison_base=False,
