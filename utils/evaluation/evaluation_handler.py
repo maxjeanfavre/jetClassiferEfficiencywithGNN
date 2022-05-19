@@ -293,7 +293,7 @@ def evaluation_handler(
                 assert set(evaluation_data.keys()).isdisjoint(
                     set(evaluation_data_collection.keys())
                 )
-                evaluation_data_collection.update(evaluation_data)
+                evaluation_data_collection["predictions_loss"] = evaluation_data
 
             # for model_config in model_configs:
             #     model_prediction_variance(jds=jds_test, model_config=model_config)
@@ -344,7 +344,7 @@ def evaluation_handler(
                 assert set(evaluation_data.keys()).isdisjoint(
                     set(evaluation_data_collection.keys())
                 )
-                evaluation_data_collection.update(evaluation_data)
+                evaluation_data_collection["jet_variable_histograms"] = evaluation_data
 
             evaluation_data = create_leading_subleading_histograms(
                 jds=jds_test_with_predictions,
@@ -355,7 +355,9 @@ def evaluation_handler(
             assert set(evaluation_data.keys()).isdisjoint(
                 set(evaluation_data_collection.keys())
             )
-            evaluation_data_collection.update(evaluation_data)
+            evaluation_data_collection[
+                "leading_subleading_histograms"
+            ] = evaluation_data
 
             print(json.dumps(evaluation_data_collection, indent=4))
 

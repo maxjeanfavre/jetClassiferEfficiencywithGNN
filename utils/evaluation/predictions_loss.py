@@ -2,12 +2,11 @@ from typing import Dict, List
 
 import numpy as np
 import sklearn.metrics
+import torch
 from loguru import logger
+from torch import nn
 
 from utils.data.jet_events_dataset import JetEventsDataset
-
-import torch
-from torch import nn
 
 
 def compute_predictions_loss(
