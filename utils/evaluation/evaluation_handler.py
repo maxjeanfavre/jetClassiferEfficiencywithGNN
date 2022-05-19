@@ -20,6 +20,7 @@ from utils.evaluation.leading_subleading_histograms import (
     create_leading_subleading_histograms,
 )
 from utils.evaluation.predictions_histogram import create_predictions_histogram
+from utils.evaluation.predictions_loss import compute_predictions_loss
 from utils.helpers.hash_dataframe import hash_df
 from utils.helpers.model_predictions import ModelPredictions
 from utils.helpers.run_id_handler import RunIdHandler
@@ -283,6 +284,17 @@ def evaluation_handler(
 
             evaluation_data_collection = {}
 
+            if comparison_pred_col is not None:
+                evaluation_data = compute_predictions_loss(
+                    jds=jds_test_with_predictions,
+                    eff_pred_cols=eff_pred_cols,
+                    comparison_col=comparison_pred_col,
+                )
+                assert set(evaluation_data.keys()).isdisjoint(
+                    set(evaluation_data_collection.keys())
+                )
+                evaluation_data_collection.update(evaluation_data)
+
             # for model_config in model_configs:
             #     model_prediction_variance(jds=jds_test, model_config=model_config)
 
@@ -329,6 +341,9 @@ def evaluation_handler(
                     bins=20,
                     comparison_col=comparison_pred_col,
                 )
+                assert set(evaluation_data.keys()).isdisjoint(
+                    set(evaluation_data_collection.keys())
+                )
                 evaluation_data_collection.update(evaluation_data)
 
             evaluation_data = create_leading_subleading_histograms(
@@ -336,6 +351,9 @@ def evaluation_handler(
                 eff_pred_cols=eff_pred_cols,
                 evaluation_dir_path=evaluation_dir_path,
                 comparison_col=comparison_pred_col,
+            )
+            assert set(evaluation_data.keys()).isdisjoint(
+                set(evaluation_data_collection.keys())
             )
             evaluation_data_collection.update(evaluation_data)
 

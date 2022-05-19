@@ -6,8 +6,11 @@ from matplotlib import pyplot as plt
 
 import utils
 from utils.data.jet_events_dataset import JetEventsDataset
-from utils.helpers.histograms.chi_squared import chi_squared_bin_wise
-from utils.helpers.rmse import compute_rmse
+from utils.helpers.histograms.distances.bhattacharyya import (
+    compute_bhattacharyya_distance,
+)
+from utils.helpers.histograms.distances.chi_squared import chi_squared_bin_wise
+from utils.helpers.histograms.distances.rmsd import compute_rmsd_distance
 from utils.plots.histogram import plot_histogram
 
 
@@ -64,11 +67,13 @@ def create_jet_variable_histogram(
                 y_exp = hist_data[comparison_col]["y"]
 
                 chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
-                rmse = compute_rmse(y_true=y_exp, y_pred=y_obs)
+                rmsd = compute_rmsd_distance(y_1=y_exp, y_2=y_obs)
+                bhattacharyya = compute_bhattacharyya_distance(y_1=y_obs, y_2=y_exp)
 
                 evaluation_data[title_snake_case][name] = {
                     "chi_squared": chi_squared,
-                    "rmse": rmse,
+                    "rmsd": rmsd,
+                    "bhattacharyya": bhattacharyya,
                 }
 
     return evaluation_data
