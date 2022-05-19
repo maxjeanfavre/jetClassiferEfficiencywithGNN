@@ -141,7 +141,7 @@ class GNN(Model):
             pickle.dump(model_init_args, f)
 
     @classmethod
-    def load(cls, path) -> Model:
+    def load(cls, path) -> GNN:
         with open(path / cls.model_init_args_filename, "rb") as f:
             model_init_args = pickle.load(f)
 

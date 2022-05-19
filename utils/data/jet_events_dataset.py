@@ -331,6 +331,7 @@ class JetEventsDataset:
 
             dfs_to_concat.append(self.df.loc[jet_boolean_mask])
 
+        logger.trace("Concating dfs")
         df = pd.concat(
             objs=dfs_to_concat,
             sort=False,
@@ -338,12 +339,16 @@ class JetEventsDataset:
 
         # can use groupby here as the level 0 index is unique because idxs is
         # constructed such that each sub-array only contains unique values
+        logger.trace("Getting event_n_jets")
         event_n_jets_sub_dfs = [
             df.groupby(level=0, sort=False).size().to_numpy() for df in dfs_to_concat
         ]
         event_n_jets = np.concatenate(event_n_jets_sub_dfs)
 
+        logger.trace("Getting index")
         idx = get_idx_from_event_n_jets(event_n_jets=event_n_jets)
+
+        logger.trace("Setting index")
         df.index = idx
 
         inst = JetEventsDataset(df=df)

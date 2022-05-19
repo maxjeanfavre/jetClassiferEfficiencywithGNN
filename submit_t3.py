@@ -119,7 +119,10 @@ def get_slurm_kwargs(
                 mem_gb = 10
             else:
                 time_hours = 12
-                mem_gb = 48
+                if dataset.startswith("TTTo2L2Nu"):
+                    mem_gb = 80
+                else:
+                    mem_gb = 48
         elif model.startswith("eff_map"):
             cpus_per_task = 4
             n_gpus = 0
@@ -193,8 +196,12 @@ def get_slurm_kwargs(
             time_hours = 0.5
             mem_gb = 10
         else:
-            time_hours = 1
-            mem_gb = 40
+            if dataset.startswith("TTTo2L2Nu"):
+                time_hours = 4
+                mem_gb = 80
+            else:
+                time_hours = 1
+                mem_gb = 20
 
     else:
         raise ValueError(f"Unknown task: {task}")
