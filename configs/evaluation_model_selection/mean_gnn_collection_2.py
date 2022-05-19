@@ -12,7 +12,7 @@ from utils.configs.evaluation_model_selection import EvaluationModelSelectionCon
 
 
 evaluation_model_selection_config = EvaluationModelSelectionConfig(
-    name="mean_gnn_gnn_dropout_50_gnn_variables_1",
+    name="mean_gnn_collection_2",
     evaluation_model_configs=[
         EvaluationModelConfig(
             model_config=direct_tagging_model_config,
