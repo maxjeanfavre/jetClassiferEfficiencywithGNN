@@ -1,11 +1,5 @@
 from configs.model.direct_tagging import model_config as direct_tagging_model_config
 from configs.model.eff_map_pt_eta import model_config as eff_map_pt_eta_model_config
-from configs.model.eff_map_pt_eta_1 import (
-    model_config as eff_map_pt_eta_1_model_config,
-)
-from configs.model.eff_map_pt_eta_old import (
-    model_config as eff_map_pt_eta_old_model_config,
-)
 from configs.model.gnn import model_config as gnn_model_config
 from configs.model.gnn_dropout_0 import model_config as gnn_dropout_0_model_config
 from configs.model.gnn_dropout_50 import model_config as gnn_dropout_50_model_config
@@ -37,18 +31,6 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
         ),
         EvaluationModelConfig(
             model_config=eff_map_pt_eta_model_config,
-            run_selection="only_latest",
-            run_aggregation="individual",
-            is_comparison_base=False,
-        ),
-        EvaluationModelConfig(
-            model_config=eff_map_pt_eta_1_model_config,
-            run_selection="only_latest",
-            run_aggregation="individual",
-            is_comparison_base=False,
-        ),
-        EvaluationModelConfig(
-            model_config=eff_map_pt_eta_old_model_config,
             run_selection="only_latest",
             run_aggregation="individual",
             is_comparison_base=False,

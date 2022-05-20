@@ -1,6 +1,7 @@
 import copy
 import json
 import pickle
+import sys
 from typing import List
 
 import numpy as np
@@ -39,6 +40,20 @@ def evaluation_handler(
     #     dir_path=model_dir_path,
     #     base_filename=utils.filenames.train_log_filename,
     # )
+    log_format = (
+        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS!UTC}</green> | "
+        "{elapsed} | "
+        "<level>{level: <8}</level> | "
+        "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - "
+        "<level>{message}</level>"
+    )
+    logger.remove(None)  # removes all existing handlers
+    logger.add(
+        sink=sys.stdout,
+        level="TRACE",
+        format=log_format,
+        colorize=True,
+    )
 
     logger.info("Evaluation starts")
 
@@ -101,12 +116,6 @@ def evaluation_handler(
 
         comparison_pred_col = None
 
-        # for (
-        #     model_config,
-        #     runs,
-        #     run_aggregation,
-        #     is_comparison_base,
-        # ) in evaluation_model_selection_config.model_settings:
         for (
             evaluation_model_config
         ) in evaluation_model_selection_config.evaluation_model_configs:
@@ -304,40 +313,32 @@ def evaluation_handler(
                 evaluation_dir_path=evaluation_dir_path,
             )
 
-            for var_col, bins in [
-                [
-                    "Jet_Pt",
-                    np.array(
-                        [-np.inf, 0, 30, 50, 70, 100, 150, 200, 300, 600, 1000, np.inf]
-                    ),
-                ],
-                [
-                    "Jet_eta",
-                    np.array(
-                        [
-                            -np.inf,
-                            -2.5,
-                            -2,
-                            -1.5,
-                            -1,
-                            -0.5,
-                            0,
-                            0.5,
-                            1,
-                            1.5,
-                            2,
-                            2.5,
-                            np.inf,
-                        ]
-                    ),
-                ],
+            # for var_col, bins in [
+            #     [
+            #         "Jet_Pt",
+            #         np.array(
+            #             [-np.inf, 0, 30, 50, 70, 100, 150, 200, 300, 600, 1000, np.inf]
+            #         ),
+            #     ],
+            #     [
+            #         "Jet_eta",
+            #         np.array(
+            #             [-np.inf, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, np.inf]
+            #         ),
+            #     ],
+            # ]:
+            for var_col in [
+                "Jet_Pt",
+                "Jet_eta",
+                "Jet_phi",
+                "Jet_mass",
+                "Jet_area",
             ]:
                 evaluation_data = create_jet_variable_histogram(
                     jds=jds_test_with_predictions,
                     eff_pred_cols=eff_pred_cols,
                     var_col=var_col,
                     evaluation_dir_path=evaluation_dir_path,
-                    # bins=bins,
                     bins=20,
                     comparison_col=comparison_pred_col,
                 )
