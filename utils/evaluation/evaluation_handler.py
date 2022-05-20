@@ -299,9 +299,7 @@ def evaluation_handler(
                     eff_pred_cols=eff_pred_cols,
                     comparison_col=comparison_pred_col,
                 )
-                assert set(evaluation_data.keys()).isdisjoint(
-                    set(evaluation_data_collection.keys())
-                )
+                assert "predictions_loss" not in evaluation_data_collection
                 evaluation_data_collection["predictions_loss"] = evaluation_data
 
             # for model_config in model_configs:
@@ -327,6 +325,7 @@ def evaluation_handler(
             #         ),
             #     ],
             # ]:
+            evaluation_data_collection["jet_variable_histograms"] = {}
             for var_col in [
                 "Jet_Pt",
                 "Jet_eta",
@@ -343,9 +342,9 @@ def evaluation_handler(
                     comparison_col=comparison_pred_col,
                 )
                 assert set(evaluation_data.keys()).isdisjoint(
-                    set(evaluation_data_collection.keys())
+                    set(evaluation_data_collection["jet_variable_histograms"].keys())
                 )
-                evaluation_data_collection["jet_variable_histograms"] = evaluation_data
+                evaluation_data_collection["jet_variable_histograms"].update(evaluation_data)
 
             evaluation_data = create_leading_subleading_histograms(
                 jds=jds_test_with_predictions,

@@ -197,7 +197,7 @@ def get_slurm_kwargs(
             mem_gb = 10
         else:
             if dataset.startswith("TTTo2L2Nu"):
-                time_hours = 4
+                time_hours = 8
                 mem_gb = 80
             else:
                 time_hours = 1
