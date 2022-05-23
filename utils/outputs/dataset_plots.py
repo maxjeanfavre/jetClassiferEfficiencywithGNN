@@ -53,12 +53,20 @@ def create_dataset_plots(
     ### Plot variable distributions
     for var, quantiles in vars_and_quantiles:
         fig, ax = plt.subplots()
+        var_data = []
+        label_data = []
+        for flavour, flavour_df in jds.df.groupby("Jet_hadronFlavour"):
+            var_data.append(flavour_df[var].to_numpy())
+            label_data.append(flavour)
         ax.hist(
-            x=jds.df[var].to_numpy(),
+            x=var_data,
             bins=30,
             range=tuple(jds.df[var].quantile(q=quantiles)),
             density=True,
+            label=label_data,
+            histtype="barstacked",
         )
+        ax.legend()
 
         title = f"Normalized histogram of {var} in {dataset_config.name}."
         if quantiles[0] != 0 or quantiles[1] != 1:
@@ -70,7 +78,7 @@ def create_dataset_plots(
                 above_text = f"above the {quantiles[1]:.2%} quantile"
             else:
                 above_text = None
-            outlier_text = "Outliers "
+            outlier_text = " Outliers "
             if below_text is not None:
                 outlier_text += below_text
                 if above_text is not None:
@@ -88,3 +96,5 @@ def create_dataset_plots(
             / f"jet_variable_normalized_{var}_{quantiles[0]}_{quantiles[1]}.png",
             dpi=300,
         )
+
+        plt.close(fig)
