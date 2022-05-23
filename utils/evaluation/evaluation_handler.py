@@ -344,7 +344,9 @@ def evaluation_handler(
                 assert set(evaluation_data.keys()).isdisjoint(
                     set(evaluation_data_collection["jet_variable_histograms"].keys())
                 )
-                evaluation_data_collection["jet_variable_histograms"].update(evaluation_data)
+                evaluation_data_collection["jet_variable_histograms"].update(
+                    evaluation_data
+                )
 
             evaluation_data = create_leading_subleading_histograms(
                 jds=jds_test_with_predictions,

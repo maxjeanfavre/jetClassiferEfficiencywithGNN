@@ -152,3 +152,23 @@ class Paths:
             path_type="directory",
             mkdir=mkdir,
         )
+
+    def dataset_output_dir(
+        self,
+        dataset_name: str,
+        mkdir: bool,
+    ) -> pathlib.Path:
+        """Returns path to the directory of dataset output files.
+
+        Args:
+            dataset_name: Name of the dataset.
+            mkdir: If True, creates parent directories for safe writing. If False, won't create parents.
+
+        Returns:
+            Path to the directory of dataset output files.
+        """
+        return self.safe_return(
+            self.root_path / "data" / dataset_name / "output",
+            path_type="directory",
+            mkdir=mkdir,
+        )
