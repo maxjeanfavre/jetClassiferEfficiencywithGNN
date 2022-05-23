@@ -26,4 +26,4 @@ def create_predictions_histogram(
         dpi=utils.settings.plots_dpi,
     )
 
-    plt.close(fig)
+    plt.close(fig=fig)

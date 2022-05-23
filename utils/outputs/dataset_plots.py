@@ -4,6 +4,7 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
+import utils
 from utils.configs.dataset import DatasetConfig
 from utils.data.jet_events_dataset import JetEventsDataset
 
@@ -48,7 +49,12 @@ def create_dataset_plots(
         x=x,
         height=height_normalized,
     )
-    fig.savefig(fname=output_dir_path / "jet_multiplicity_normalized.png", dpi=300)
+    fig.savefig(
+        fname=output_dir_path / "jet_multiplicity_normalized.png",
+        dpi=utils.settings.plots_dpi,
+    )
+
+    plt.close(fig=fig)
 
     ### Plot variable distributions
     for var, quantiles in vars_and_quantiles:
@@ -94,7 +100,7 @@ def create_dataset_plots(
         fig.savefig(
             fname=output_dir_path
             / f"jet_variable_normalized_{var}_{quantiles[0]}_{quantiles[1]}.png",
-            dpi=300,
+            dpi=utils.settings.plots_dpi,
         )
 
-        plt.close(fig)
+        plt.close(fig=fig)

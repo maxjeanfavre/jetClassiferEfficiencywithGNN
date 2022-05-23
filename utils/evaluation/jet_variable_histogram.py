@@ -57,7 +57,7 @@ def create_jet_variable_histogram(
             dpi=utils.settings.plots_dpi,
         )
 
-        plt.close(fig)
+        plt.close(fig=fig)
 
         evaluation_data[title_snake_case] = {}
 

@@ -186,7 +186,7 @@ def create_leading_subleading_histograms(
                 dpi=utils.settings.plots_dpi,
             )
 
-            plt.close(fig)
+            plt.close(fig=fig)
 
             evaluation_data[title_snake_case] = {}
 
