@@ -379,7 +379,7 @@ class BinnedEfficiencyMaps:
                     )
                 )
 
-                hist_eff_variance = separated_histograms["eff_mean"]
+                hist_eff_variance = separated_histograms["eff_variance"]
                 hist_eff_variance_without_under_over_flow = (
                     hist_eff_variance.without_under_over_flow()
                 )
