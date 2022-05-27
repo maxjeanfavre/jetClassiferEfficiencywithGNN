@@ -1,3 +1,4 @@
+import pathlib
 from typing import List
 
 import matplotlib.cm as cm
@@ -19,6 +20,7 @@ def plot_2d_histograms_as_3d_bars(
     titles: List[str],
     fig_title: str,
 ):
+    # TODO(low): https://stackoverflow.com/questions/18602660/matplotlib-bar3d-clipping-problems
     fig = plt.figure(figsize=(20, 10))
     fig.suptitle(fig_title)
 
@@ -108,6 +110,7 @@ def create_efficiency_map_histogram_plots(
     dataset_handling_config: DatasetHandlingConfig,
     working_points_set_config: WorkingPointsSetConfig,
     model_config: ModelConfig,
+    output_dir_path: pathlib.Path,
 ):
     variables_to_plot = ("Jet_Pt", "Jet_eta")
 
@@ -148,7 +151,7 @@ def create_efficiency_map_histogram_plots(
             hists = []
             titles = []
             flavours = sorted(working_point_histograms.keys())
-            for flavour in flavours:
+            for flavour in flavours:  # to have consistent order of flavours
                 flavour_eff_hist = working_point_histograms[flavour]["eff_mode"]
                 hists.append(flavour_eff_hist)
                 titles.append(f"{bem.separation_cols[0]}: {flavour}")
@@ -164,6 +167,11 @@ def create_efficiency_map_histogram_plots(
                 dpi=utils.settings.plots_dpi,
                 bbox_inches="tight",
             )
+            fig_surfaces.savefig(
+                fname=output_dir_path / f"{model_config.name}_{working_point}_surfaces.png",
+                dpi=utils.settings.plots_dpi,
+                bbox_inches="tight",
+            )
 
             plt.close(fig=fig_surfaces)
 
@@ -175,6 +183,11 @@ def create_efficiency_map_histogram_plots(
 
             fig_bars.savefig(
                 fname=model_dir_path / f"efficiency_map_{working_point}_bars.png",
+                dpi=utils.settings.plots_dpi,
+                bbox_inches="tight",
+            )
+            fig_bars.savefig(
+                fname=output_dir_path / f"{model_config.name}_{working_point}_bars.png",
                 dpi=utils.settings.plots_dpi,
                 bbox_inches="tight",
             )

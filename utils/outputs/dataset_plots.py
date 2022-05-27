@@ -7,6 +7,7 @@ import numpy as np
 import utils
 from utils.configs.dataset import DatasetConfig
 from utils.data.jet_events_dataset import JetEventsDataset
+from utils.data.manipulation.data_filters.eval_expression import EvalExpressionFilter
 
 
 def create_dataset_plots(
@@ -49,6 +50,7 @@ def create_dataset_plots(
         x=x,
         height=height_normalized,
     )
+    fig.tight_layout()
     fig.savefig(
         fname=output_dir_path / "jet_multiplicity_normalized.png",
         dpi=utils.settings.plots_dpi,
@@ -58,12 +60,15 @@ def create_dataset_plots(
 
     ### Plot variable distributions
     for var, quantiles in vars_and_quantiles:
-        fig, ax = plt.subplots()
+        flavours = sorted(set(jds.df["Jet_hadronFlavour"].to_numpy()))
         var_data = []
         label_data = []
-        for flavour, flavour_df in jds.df.groupby("Jet_hadronFlavour"):
-            var_data.append(flavour_df[var].to_numpy())
+        for flavour in flavours:  # not groupby to have consistent order of flavours
+            var_data.append(
+                jds.df.loc[jds.df["Jet_hadronFlavour"] == flavour, var].to_numpy()
+            )
             label_data.append(flavour)
+        fig, ax = plt.subplots()
         ax.hist(
             x=var_data,
             bins=30,
@@ -104,3 +109,68 @@ def create_dataset_plots(
         )
 
         plt.close(fig=fig)
+
+    ### Plot distribution of DeepCSV P(b) + P(bb) discriminator
+    ### for jets with valid values separated by flavour
+    # TODO(low): use given jds but have to make sure to not change it
+    jds = JetEventsDataset.read_in(
+        dataset_config=dataset_config,
+        branches=("Jet_btagDeepB", "Jet_hadronFlavour"),
+    )
+
+    jds.manipulate(
+        data_manipulators=(
+            EvalExpressionFilter(
+                description=(
+                    "Keeps jets with valid btagDeepB value (0 <= Jet_btagDeepB <= 1)"
+                ),
+                active_modes=("foo",),
+                expression="0 <= Jet_btagDeepB <= 1",
+                filter_full_event=False,
+                required_columns=("Jet_btagDeepB",),
+            ),
+        ),
+        mode="foo",
+    )
+
+    flavours = sorted(set(jds.df["Jet_hadronFlavour"].to_numpy()))
+    flavours.reverse()
+    var_data = []
+    label_data = []
+    for flavour in flavours:
+        var_data.append(
+            jds.df.loc[
+                jds.df["Jet_hadronFlavour"] == flavour, "Jet_btagDeepB"
+            ].to_numpy()
+        )
+        label_data.append(flavour)
+
+    fig, ax = plt.subplots()
+    fig.suptitle(
+        f"Histogram of the DeepCSV discriminator in {dataset_config.name}", wrap=True
+    )
+
+    ax.hist(
+        x=var_data,
+        bins=np.linspace(0, 1, 30),
+        label=label_data,
+        histtype="barstacked",
+        edgecolor="black",
+        linewidth=0.75,
+    )
+
+    ax.set_yscale("log")
+
+    ax.set_xlabel("DeepCSV discriminator")
+    ax.set_ylabel("Jets")
+
+    ax.legend()
+
+    fig.tight_layout()
+
+    fig.savefig(
+        fname=output_dir_path / "jet_btagDeepB_histogram.png",
+        dpi=utils.settings.plots_dpi,
+    )
+
+    plt.close(fig=fig)
