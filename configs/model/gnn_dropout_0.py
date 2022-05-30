@@ -8,4 +8,4 @@ model_config.name = "gnn_dropout_0"
 
 model_config.model_init_kwargs["edge_network_dropout"] = 0
 model_config.model_init_kwargs["node_network_dropout"] = 0
-model_config.model_init_kwargs["eff_correction_dropout"] = None
+model_config.model_init_kwargs["jet_efficiency_net_dropout"] = 0

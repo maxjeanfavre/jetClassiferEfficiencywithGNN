@@ -18,7 +18,7 @@ from utils.helpers.histograms.distances.bhattacharyya import (
     compute_bhattacharyya_distance,
 )
 from utils.helpers.histograms.distances.chi_squared import chi_squared_bin_wise
-from utils.helpers.histograms.distances.rmsd import compute_rmsd_distance
+from utils.helpers.histograms.distances.rmse import compute_rmse_distance
 from utils.helpers.kinematics.delta_r_two_jet_events import (
     compute_delta_r_two_jet_events,
 )
@@ -38,7 +38,7 @@ def create_leading_subleading_histograms(
     warning_threshold = 0.01
     if np.mean(jds.event_n_jets < 2) > warning_threshold:
         logger.warning(
-            f"More than {warning_threshold * 100} % of "
+            f"More than {warning_threshold:.4%} of "
             f"the events had less than two jets left"
         )
 
@@ -196,12 +196,12 @@ def create_leading_subleading_histograms(
                     y_exp = hist_data[comparison_col]["y"]
 
                     chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
-                    rmsd = compute_rmsd_distance(y_1=y_exp, y_2=y_obs)
+                    rmse = compute_rmse_distance(y_1=y_exp, y_2=y_obs)
                     bhattacharyya = compute_bhattacharyya_distance(y_1=y_obs, y_2=y_exp)
 
                     evaluation_data[title_snake_case][name] = {
                         "chi_squared": chi_squared,
-                        "rmsd": rmsd,
+                        "rmse": rmse,
                         "bhattacharyya": bhattacharyya,
                     }
 

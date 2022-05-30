@@ -138,9 +138,9 @@ class JetEventsDataset:
             logger.debug(
                 "After data manipulators, remaining: "
                 f"{n_events_after} / {n_events_before} "
-                f"({n_events_after / n_events_before * 100:.2f} %) of events, "
+                f"({n_events_after / n_events_before:.2%}) of events, "
                 f"{n_jets_after} / {n_jets_before} "
-                f"({n_jets_after / n_jets_before * 100:.2f} %) of jets"
+                f"({n_jets_after / n_jets_before:.2%}) of jets"
             )
 
     def split_data(
@@ -154,26 +154,28 @@ class JetEventsDataset:
     ):
         logger.debug(
             "Starting split_data with "
-            f"train_size: {train_size}, test_size: {test_size}, "
-            f"return_train: {return_train}, return_test: {return_test}, "
-            f"random_state: {random_state}"
+            f"{train_size = }, "
+            f"{test_size = }, "
+            f"{return_train = }, "
+            f"{return_test = }, "
+            f"{random_state = }"
         )
         if not return_train and not return_test:
             raise ValueError(
                 "At least one of 'return_train' and 'return_test' has to be True. "
-                f"Got: return_train: {return_train}, return_test: {return_test}"
+                f"Got: {return_train = }, {return_test = }"
             )
         if train_size + test_size > 1:
             raise ValueError(
                 "train_size + test_size has to be <= 1. "
-                f"Got: train_size: {train_size}, test_size: {test_size}"
+                f"Got: {train_size = }, {test_size = }"
             )
         elif train_size == 1 or test_size == 1:
             if return_train and return_test:
                 raise ValueError(
                     "If either train_size or test_size is 1, "
                     "only one of return_train and return_test can be True. "
-                    f"Got: return_train: {return_train}, return_test: {return_test}"
+                    f"Got: {return_train = }, {return_test = }"
                 )
             assert return_train or return_test
             if copy:
@@ -304,7 +306,7 @@ class JetEventsDataset:
         logger.trace(
             "Bootstrap fraction of selected events: "
             f"{len(set(bootstrap_selection))} / {self.n_events} "
-            f"({len(set(bootstrap_selection)) / self.n_events * 100:.2f} %) of events"
+            f"({len(set(bootstrap_selection)) / self.n_events:.2%}) of events"
         )
 
         counts = np.bincount(bootstrap_selection)

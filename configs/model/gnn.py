@@ -67,8 +67,8 @@ model_config = ModelConfig(
             "lr_lambda": lr_func,
             "verbose": False,
         },
-        "train_split": 0.8,
-        "validation_split": 0.2,
+        "train_split": 0.95,
+        "validation_split": 0.05,
         "loss_func": None,
     },
     model_predict_kwargs={

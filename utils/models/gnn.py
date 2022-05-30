@@ -470,7 +470,9 @@ class GNN(Model):
                 f"learning rate: {learning_rate}"
             )
 
-            # TODO(medium): save model with the lowest epoch validation loss
+            # TODO(low): save model with the lowest epoch validation loss,
+            #  won't make a big difference as the validation loss did not
+            #  increase towards the end of the training
 
     def predict(
         self,
