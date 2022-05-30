@@ -25,13 +25,14 @@ from utils.helpers.kinematics.delta_r_split_up_by_event import (
 )
 from utils.helpers.tag_working_points import get_tag_working_points
 from utils.helpers.torch_tensor_to_numpy import convert_torch_tensor_to_numpy
-from utils.models.gnn_jet_efficiency_net import JetEfficiencyNet
 from utils.models.model import Model
 from utils.preprocessing.pipeline import PreprocessingPipeline
 
-NODE_FEATURES = "node_features"
-FLAVOUR_INDICES = "flav_indices"
-DELTA_R = "dR"
+NODE_FEATURES_KEY = "NODE_FEATURES"
+NODE_HIDDEN_STATE_KEY = "NODE_HIDDEN_STATE"
+EDGE_FEATURE_KEY = "dR"
+EDGE_HIDDEN_STATE_KEY = "EDGE_HIDDEN_STATE_KEY"
+FLAVOUR_INDICES_KEY = "FLAVOUR_INDICES"
 
 
 class GNN(Model):
@@ -45,14 +46,15 @@ class GNN(Model):
         node_features_cols: List[str],
         flavour_col: str,
         preprocessing_pipeline: PreprocessingPipeline,
-        feats,
-        correction_layers,
-        flavour_embedding_num_embeddings,
-        flavour_embedding_dim,
+        edge_hidden_state_sizes: List[int],
+        node_hidden_state_sizes: List[int],
+        jet_efficiency_net_hidden_layers: List[int],
+        flavour_embedding_num_embeddings: int,
+        flavour_embedding_dim: int,
         flavour_index_conversion_dict,
-        edge_network_dropout,
-        node_network_dropout,
-        eff_correction_dropout,
+        edge_network_dropout: float,
+        node_network_dropout: float,
+        jet_efficiency_net_dropout: float,
         old_mode: bool = False,
         old_mode_wp_idx: Optional[int] = None,
     ) -> None:
@@ -61,14 +63,15 @@ class GNN(Model):
         self.node_features_cols = node_features_cols
         self.flavour_col = flavour_col
         self.preprocessing_pipeline = preprocessing_pipeline
-        self.feats = feats
-        self.correction_layers = correction_layers
+        self.edge_hidden_state_sizes = edge_hidden_state_sizes
+        self.node_hidden_state_sizes = node_hidden_state_sizes
+        self.jet_efficiency_net_hidden_layers = jet_efficiency_net_hidden_layers
         self.flavour_embedding_num_embeddings = flavour_embedding_num_embeddings
         self.flavour_embedding_dim = flavour_embedding_dim
         self.flavour_index_conversion_dict = flavour_index_conversion_dict
         self.edge_network_dropout = edge_network_dropout
         self.node_network_dropout = node_network_dropout
-        self.eff_correction_dropout = eff_correction_dropout
+        self.jet_efficiency_net_dropout = jet_efficiency_net_dropout
         self.old_mode = old_mode
 
         if self.old_mode:
@@ -99,16 +102,22 @@ class GNN(Model):
 
         self.old_mode_wp_idx = old_mode_wp_idx
 
-        self.estimator = JetEfficiencyNet(
-            in_features=len(self.node_features_cols) + self.flavour_embedding_dim,
-            feats=self.feats,
-            correction_layers=self.correction_layers,
-            num_classes=n_classes,
+        self.estimator = GNNTorchModel(
+            n_node_features=len(self.node_features_cols),
+            edge_hidden_state_sizes=self.edge_hidden_state_sizes,
+            node_hidden_state_sizes=self.node_hidden_state_sizes,
+            jet_efficiency_net_hidden_layers=self.jet_efficiency_net_hidden_layers,
+            n_classes=n_classes,
             flavour_embedding_num_embeddings=self.flavour_embedding_num_embeddings,
             flavour_embedding_dim=self.flavour_embedding_dim,
             edge_network_dropout=self.edge_network_dropout,
             node_network_dropout=self.node_network_dropout,
-            eff_correction_dropout=self.eff_correction_dropout,
+            jet_efficiency_net_dropout=self.jet_efficiency_net_dropout,
+            node_features_key=NODE_FEATURES_KEY,
+            node_hidden_state_key=NODE_HIDDEN_STATE_KEY,
+            edge_feature_key=EDGE_FEATURE_KEY,
+            edge_hidden_state_key=EDGE_HIDDEN_STATE_KEY,
+            flavour_indices_key=FLAVOUR_INDICES_KEY,
         )
 
     def save(self, path) -> None:
@@ -125,14 +134,15 @@ class GNN(Model):
             "working_points_set_config": self.working_points_set_config,
             "node_features_cols": self.node_features_cols,
             "flavour_col": self.flavour_col,
-            "feats": self.feats,
-            "correction_layers": self.correction_layers,
+            "edge_hidden_state_sizes": self.edge_hidden_state_sizes,
+            "node_hidden_state_sizes": self.node_hidden_state_sizes,
+            "jet_efficiency_net_hidden_layers": self.jet_efficiency_net_hidden_layers,
             "flavour_embedding_num_embeddings": self.flavour_embedding_num_embeddings,
             "flavour_embedding_dim": self.flavour_embedding_dim,
             "flavour_index_conversion_dict": self.flavour_index_conversion_dict,
             "edge_network_dropout": self.edge_network_dropout,
             "node_network_dropout": self.node_network_dropout,
-            "eff_correction_dropout": self.eff_correction_dropout,
+            "jet_efficiency_net_dropout": self.jet_efficiency_net_dropout,
             "old_mode": self.old_mode,
             "old_mode_wp_idx": self.old_mode_wp_idx,
         }
@@ -748,7 +758,7 @@ class TorchDataset(Dataset):
             self.flavour_ = []
             self.target_ = []
             for i in tqdm(range(self.__len__()), file=sys.stdout):
-                g, flavour, target = self.__getitem__real(idx=i)
+                g, flavour, target = self.__getitem__single_event(idx=i)
                 self.g_.append(g)
                 self.flavour_.append(flavour)
                 self.target_.append(target)
@@ -763,11 +773,11 @@ class TorchDataset(Dataset):
             flavour = self.flavour_[idx]
             target = self.target_[idx]
         else:
-            g, flavour, target = self.__getitem__real(idx=idx)
+            g, flavour, target = self.__getitem__single_event(idx=idx)
 
         return g, flavour, target
 
-    def __getitem__real(self, idx):
+    def __getitem__single_event(self, idx):
         # idx is the index of an event
         jets_offset = self.events_jets_offset[idx]
 
@@ -792,17 +802,17 @@ class TorchDataset(Dataset):
         #
         # g.add_nodes(n_jets)
         #
-        # g.ndata[NODE_FEATURES] = node_features
-        # g.ndata[FLAVOUR_INDICES] = flavour_indices
+        # g.ndata[NODE_FEATURES_KEY] = node_features
+        # g.ndata[FLAVOUR_INDICES_KEY] = flavour_indices
         #
         # g.add_edges(u=src, v=dst)
         #
-        # g.edata[DELTA_R] = delta_r
+        # g.edata[EDGE_FEATURE_KEY] = delta_r
 
         g = dgl.graph((src, dst), num_nodes=n_jets)
-        g.ndata[NODE_FEATURES] = node_features
-        g.ndata[FLAVOUR_INDICES] = flavour_indices
-        g.edata[DELTA_R] = delta_r
+        g.ndata[NODE_FEATURES_KEY] = node_features
+        g.ndata[FLAVOUR_INDICES_KEY] = flavour_indices
+        g.edata[EDGE_FEATURE_KEY] = delta_r
 
         return g, flavour, target
 
@@ -813,7 +823,9 @@ def collate(samples):
     targets = [x[2] for x in samples]
 
     batched_graph = dgl.batch(
-        graphs=graphs, ndata=[NODE_FEATURES, FLAVOUR_INDICES], edata=[DELTA_R]
+        graphs=graphs,
+        ndata=[NODE_FEATURES_KEY, FLAVOUR_INDICES_KEY],
+        edata=[EDGE_FEATURE_KEY],
     )
     flavours = torch.cat(flavours)
     targets = torch.cat(targets)
@@ -822,3 +834,396 @@ def collate(samples):
     targets = targets.long()
 
     return batched_graph, flavours, targets
+
+
+class EdgeNetwork(nn.Module):
+    def __init__(
+        self,
+        input_node_features_size: int,
+        input_node_hidden_state_size: int,
+        output_edge_hidden_state_size: int,
+        dropout: float,
+        first_layer: bool,
+        node_features_key: str,
+        node_hidden_state_key: str,
+        edge_feature_key: str,
+        edge_hidden_state_key: str,
+    ) -> None:
+        super(EdgeNetwork, self).__init__()
+
+        if first_layer is True and input_node_hidden_state_size != 0:
+            raise ValueError(
+                "For the first layer the node hidden state does not exist yet "
+                "and therefore input_node_hidden_state_size should be 0. "
+                f"Got {input_node_hidden_state_size = }"
+            )
+
+        self.input_node_features_size = input_node_features_size
+        self.input_node_hidden_state_size = input_node_hidden_state_size
+        self.output_edge_hidden_state_size = output_edge_hidden_state_size
+        self.dropout = dropout
+        self.first_layer = first_layer
+        self.node_features_key = node_features_key
+        self.node_hidden_state_key = node_hidden_state_key
+        self.edge_feature_key = edge_feature_key
+        self.edge_hidden_state_key = edge_hidden_state_key
+
+        # the in_features come from
+        # - for both the source and destination node of an edge
+        #   - 'input_node_features_size'
+        #   - 'input_node_hidden_state_size' if first_layer is False
+        # - a single edge feature
+        in_features = (
+            2 * (self.input_node_features_size + self.input_node_hidden_state_size) + 1
+        )
+
+        out_features = self.output_edge_hidden_state_size
+
+        mid_features = int(
+            (
+                2 * (self.input_node_features_size + self.input_node_hidden_state_size)
+                + out_features
+            )
+            / 2
+        )
+
+        self.net = nn.Sequential(
+            nn.Linear(
+                in_features=in_features,
+                out_features=mid_features,
+                bias=True,
+            ),
+            nn.Dropout(p=self.dropout),
+            nn.ReLU(),
+            nn.Linear(
+                in_features=mid_features,
+                out_features=out_features,
+                bias=True,
+            ),
+            nn.Tanh(),
+        )
+
+    def forward(self, x):
+        if self.first_layer is True:
+            input_data_list = [
+                x.dst[self.node_features_key],
+                x.src[self.node_features_key],
+            ]
+        else:
+            input_data_list = [
+                x.dst[self.node_features_key],
+                x.dst[self.node_hidden_state_key],
+                x.src[self.node_features_key],
+                x.src[self.node_hidden_state_key],
+            ]
+
+        assert x.data[self.edge_feature_key].dim() == 1
+        input_data_list.append(x.data[self.edge_feature_key].unsqueeze(dim=1))
+
+        for data in input_data_list:
+            assert data.dim() == 2
+            assert data.size(dim=0) == x.batch_size()
+
+        input_data = torch.cat(input_data_list, dim=1)
+
+        result = self.net(input_data)
+
+        output = {self.edge_hidden_state_key: result}
+
+        return output
+
+
+class NodeNetwork(nn.Module):
+    def __init__(
+        self,
+        input_node_features_size: int,
+        input_node_hidden_state_size: int,
+        input_edge_hidden_state_size: int,
+        output_node_hidden_state_size: int,
+        dropout: float,
+        first_layer: bool,
+        node_features_key: str,
+        node_hidden_state_key: str,
+        edge_hidden_state_key: str,
+    ) -> None:
+        super(NodeNetwork, self).__init__()
+
+        if output_node_hidden_state_size % 2 != 0:
+            raise ValueError(
+                "'output_node_hidden_state_size' has to be an even number because "
+                "the output is a concatenation of two neural networks which "
+                "should each have output_node_hidden_state_size/2 outputs. "
+                f"Got: {output_node_hidden_state_size = }"
+            )
+
+        self.input_node_features_size = input_node_features_size
+        self.input_node_hidden_state_size = input_node_hidden_state_size
+        self.input_edge_hidden_state_size = input_edge_hidden_state_size
+        self.output_node_hidden_state_size = output_node_hidden_state_size
+        self.dropout = dropout
+        self.first_layer = first_layer
+        self.node_features_key = node_features_key
+        self.node_hidden_state_key = node_hidden_state_key
+        self.edge_hidden_state_key = edge_hidden_state_key
+
+        # out_features for both nets is half of the desired
+        # output features of the node update
+        out_features_both_nets = int(self.output_node_hidden_state_size / 2)
+
+        in_features_net_1 = (
+            self.input_node_features_size + self.input_node_hidden_state_size
+        )
+
+        mid_features_net_1 = int(
+            (
+                self.input_node_features_size
+                + self.input_node_hidden_state_size
+                + out_features_both_nets
+            )
+            / 2
+        )
+
+        self.net_1 = nn.Sequential(
+            nn.Linear(
+                in_features=in_features_net_1,
+                out_features=mid_features_net_1,
+                bias=True,
+            ),
+            nn.Dropout(p=self.dropout),
+            nn.ReLU(),
+            nn.Linear(
+                in_features=mid_features_net_1,
+                out_features=out_features_both_nets,
+                bias=True,
+            ),
+            nn.Tanh(),
+        )
+
+        self.net_2 = nn.Sequential(
+            nn.Linear(
+                in_features=self.input_edge_hidden_state_size,
+                out_features=out_features_both_nets,
+                bias=True,
+            ),
+            nn.Dropout(p=self.dropout),
+            nn.ReLU(),
+            nn.Linear(
+                in_features=out_features_both_nets,
+                out_features=out_features_both_nets,
+                bias=True,
+            ),
+            nn.Tanh(),
+        )
+
+    def forward(self, x):
+        if self.first_layer is True:
+            input_data_1 = x.data[self.node_features_key]
+        else:
+            input_data_1 = torch.cat(
+                [x.data[self.node_features_key], x.data[self.node_hidden_state_key]],
+                dim=1,
+            )
+
+        result_1 = self.net_1(input_data_1)
+
+        # message sum of incoming edges
+        input_data_2 = torch.sum(x.mailbox[self.edge_hidden_state_key], dim=1)
+
+        result_2 = self.net_2(input_data_2)
+
+        result = torch.cat([result_1, result_2], dim=1)
+        result = result / torch.norm(result, p="fro", dim=1, keepdim=True)
+
+        output = {self.node_hidden_state_key: result}
+
+        return output
+
+
+class GNNTorchModel(nn.Module):
+    def __init__(
+        self,
+        n_node_features: int,
+        edge_hidden_state_sizes: List[int],
+        node_hidden_state_sizes: List[int],
+        jet_efficiency_net_hidden_layers: List[int],
+        n_classes: int,
+        flavour_embedding_num_embeddings: Optional[int],
+        flavour_embedding_dim: Optional[int],
+        edge_network_dropout: float,
+        node_network_dropout: float,
+        jet_efficiency_net_dropout: float,
+        node_features_key: str,
+        node_hidden_state_key: str,
+        edge_feature_key: str,
+        edge_hidden_state_key: str,
+        flavour_indices_key: str,
+    ) -> None:
+        super(GNNTorchModel, self).__init__()
+
+        if len(edge_hidden_state_sizes) != len(node_hidden_state_sizes):
+            raise ValueError(
+                "Lists of hidden state sizes must have the same length. Got: "
+                f"{len(edge_hidden_state_sizes) = }, "
+                f"{len(node_hidden_state_sizes) = }"
+            )
+
+        if (flavour_embedding_num_embeddings is None) != (
+            flavour_embedding_dim is None
+        ):
+            raise ValueError(
+                "Parameters for flavour embedding have to either "
+                "all be None or all have values. Got: "
+                f"{flavour_embedding_num_embeddings = }, "
+                f"{flavour_embedding_dim = }"
+            )
+
+        self.n_node_features = n_node_features
+        self.edge_hidden_state_sizes = edge_hidden_state_sizes
+        self.node_hidden_state_sizes = node_hidden_state_sizes
+        self.jet_efficiency_net_hidden_layers = jet_efficiency_net_hidden_layers
+        self.n_classes = n_classes
+        self.flavour_embedding_num_embeddings = flavour_embedding_num_embeddings
+        self.flavour_embedding_dim = flavour_embedding_dim
+        self.edge_network_dropout = edge_network_dropout
+        self.node_network_dropout = node_network_dropout
+        self.jet_efficiency_net_dropout = jet_efficiency_net_dropout
+        self.node_features_key = node_features_key
+        self.node_hidden_state_key = node_hidden_state_key
+        self.edge_feature_key = edge_feature_key
+        self.edge_hidden_state_key = edge_hidden_state_key
+        self.flavour_indices_key = flavour_indices_key
+
+        self.node_predictions_key = "NODE_PREDICTION"
+
+        if self.flavour_embedding_dim is not None:
+            self.flavour_embedding = nn.Embedding(
+                num_embeddings=self.flavour_embedding_num_embeddings,
+                embedding_dim=self.flavour_embedding_dim,
+            )
+            self.total_node_features = self.n_node_features + self.flavour_embedding_dim
+        else:
+            self.flavour_embedding = None
+            self.total_node_features = self.n_node_features
+
+        self.edge_updates = nn.ModuleList()
+        self.node_updates = nn.ModuleList()
+
+        for i in range(len(self.edge_hidden_state_sizes)):
+            # This GN block:
+            ## uses a node hidden state of size
+            if i == 0:
+                # zero, as this is the first GN block and no node hidden state exists yet
+                gn_block_input_node_hidden_state_size = 0
+            else:
+                # of the node hidden state of the previous GN block
+                gn_block_input_node_hidden_state_size = self.node_hidden_state_sizes[
+                    i - 1
+                ]
+
+            ## builds an edge representation of size in the EdgeNetwork
+            ## and uses it as input in the NodeNetwork
+            gn_block_output_edge_hidden_state_size = self.edge_hidden_state_sizes[i]
+
+            ## builds a node hidden state size of
+            gn_block_output_node_hidden_state_size = self.node_hidden_state_sizes[i]
+
+            if i == 0:
+                first_layer = True
+            else:
+                first_layer = False
+
+            edge_network = EdgeNetwork(
+                input_node_features_size=self.total_node_features,
+                input_node_hidden_state_size=gn_block_input_node_hidden_state_size,
+                output_edge_hidden_state_size=gn_block_output_edge_hidden_state_size,
+                dropout=self.edge_network_dropout,
+                first_layer=first_layer,
+                node_features_key=self.node_features_key,
+                node_hidden_state_key=self.node_hidden_state_key,
+                edge_feature_key=self.edge_feature_key,
+                edge_hidden_state_key=self.edge_hidden_state_key,
+            )
+
+            node_network = NodeNetwork(
+                input_node_features_size=self.total_node_features,
+                input_node_hidden_state_size=gn_block_input_node_hidden_state_size,
+                input_edge_hidden_state_size=gn_block_output_edge_hidden_state_size,
+                output_node_hidden_state_size=gn_block_output_node_hidden_state_size,
+                dropout=self.node_network_dropout,
+                first_layer=first_layer,
+                node_features_key=self.node_features_key,
+                node_hidden_state_key=self.node_hidden_state_key,
+                edge_hidden_state_key=self.edge_hidden_state_key,
+            )
+
+            self.edge_updates.append(edge_network)
+            self.node_updates.append(node_network)
+
+        jet_efficiency_net_layers = []
+
+        for i in range(len(self.jet_efficiency_net_hidden_layers)):
+            if i == 0:  # first layer
+                # input of node features, embedded flavour, and the
+                # node hidden state from the last GN block
+                in_features = (
+                    self.total_node_features + self.node_hidden_state_sizes[-1]
+                )
+                out_features = self.jet_efficiency_net_hidden_layers[0]
+            else:
+                in_features = self.jet_efficiency_net_hidden_layers[i - 1]
+                out_features = self.jet_efficiency_net_hidden_layers[i]
+            jet_efficiency_net_layers.extend(
+                [
+                    nn.Linear(
+                        in_features=in_features,
+                        out_features=out_features,
+                        bias=True,
+                    ),
+                    nn.Dropout(p=self.jet_efficiency_net_dropout),
+                    nn.ReLU(),
+                ]
+            )
+
+        jet_efficiency_net_layers.append(
+            nn.Linear(
+                in_features=self.jet_efficiency_net_hidden_layers[-1],
+                out_features=self.n_classes,
+                bias=True,
+            )
+        )
+
+        self.jet_efficiency_net = nn.Sequential(*jet_efficiency_net_layers)
+
+    def forward(self, g):
+        if self.flavour_embedding is not None:
+            # pass flavour indices through embedding and append it to the node features
+            embedded_flavour = self.flavour_embedding(g.ndata[self.flavour_indices_key])
+            g.ndata[self.node_features_key] = torch.cat(
+                [
+                    g.ndata[self.node_features_key],
+                    embedded_flavour,
+                ],
+                dim=1,
+            )
+
+        for edge_update, node_update in zip(self.edge_updates, self.node_updates):
+            g.update_all(
+                message_func=edge_update,
+                reduce_func=node_update,
+            )
+
+        jet_efficiency_net_input = torch.cat(
+            [
+                g.ndata[self.node_features_key],
+                g.ndata[self.node_hidden_state_key],
+            ],
+            dim=1,
+        )
+
+        jet_efficiency_net_output = self.jet_efficiency_net(jet_efficiency_net_input)
+
+        g.ndata[self.node_predictions_key] = jet_efficiency_net_output
+
+        out = g.ndata[self.node_predictions_key]
+
+        return out

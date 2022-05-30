@@ -41,8 +41,9 @@ model_config = ModelConfig(
                 "Jet_hadronFlavour": Identity(),
             }
         ),
-        "feats": [512, 512, 512, 512, 512],
-        "correction_layers": [512, 256, 128, 50],
+        "edge_hidden_state_sizes": [256, 256, 256, 256, 256],
+        "node_hidden_state_sizes": [512, 512, 512, 512, 512],
+        "jet_efficiency_net_hidden_layers": [512, 256, 128, 50],
         "flavour_embedding_num_embeddings": 3,  # only have 3 flavours (0, 4, 5)
         "flavour_embedding_dim": 2,
         "flavour_index_conversion_dict": {
@@ -52,7 +53,7 @@ model_config = ModelConfig(
         },
         "edge_network_dropout": 0.3,
         "node_network_dropout": 0.3,
-        "eff_correction_dropout": 0.3,
+        "jet_efficiency_net_dropout": 0.3,
         "old_mode": False,
         "old_mode_wp_idx": None,
     },
