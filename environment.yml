@@ -13,7 +13,7 @@ dependencies:
   - pytest
   - loguru
   - memory_profiler
-  - pyarrow>=6
+  - pyarrow=7
   - tensorboard
   - conda-forge::uproot=4.1.8
   - dglteam::dgl-cuda11.3
