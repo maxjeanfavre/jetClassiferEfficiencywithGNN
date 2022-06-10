@@ -85,8 +85,9 @@ class RunIdHandler:
         return run_id.startswith("bootstrap_")
 
     @classmethod
-    def get_run_ids(cls, dir_path: pathlib.Path, only_latest: bool) -> List[str]:
-        # TODO(critical): allow filtering on bootstrap or not
+    def get_run_ids(
+        cls, dir_path: pathlib.Path, only_latest: bool, only_bootstrap: bool = False
+    ) -> List[str]:
         if not dir_path.exists() or not dir_path.is_dir():
             return []
         else:
@@ -95,7 +96,11 @@ class RunIdHandler:
                 if p.is_dir() and not any(
                     p.name.startswith(prefix) for prefix in cls.possible_prefix_values
                 ):
-                    run_ids.append(p.name)
+                    if only_bootstrap:
+                        if cls.is_bootstrap_run_id(run_id=p.name):
+                            run_ids.append(p.name)
+                    else:
+                        run_ids.append(p.name)
 
             run_ids = sorted(run_ids)
 
