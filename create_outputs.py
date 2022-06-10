@@ -5,13 +5,7 @@ def main():
     from configs.dataset.QCD_Pt_300_470_MuEnrichedPt5 import (
         dataset_config as QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
     )
-    from configs.dataset.QCD_Pt_300_470_MuEnrichedPt5_test import (
-        dataset_config as QCD_Pt_300_470_MuEnrichedPt5_test_dataset_config,
-    )
     from configs.dataset.TTTo2L2Nu import dataset_config as TTTo2L2Nu_dataset_config
-    from configs.dataset.TTTo2L2Nu_test import (
-        dataset_config as TTTo2L2Nu_test_dataset_config,
-    )
     from configs.dataset_handling.standard_dataset_handling import (
         dataset_handling_config as standard_dataset_handling_config,
     )
@@ -22,9 +16,7 @@ def main():
 
     for dataset_config in [
         TTTo2L2Nu_dataset_config,
-        TTTo2L2Nu_test_dataset_config,
         QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
-        QCD_Pt_300_470_MuEnrichedPt5_test_dataset_config,
     ]:
         create_outputs(
             dataset_config=dataset_config,
