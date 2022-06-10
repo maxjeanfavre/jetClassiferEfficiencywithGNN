@@ -12,6 +12,7 @@ class EvaluationModelConfig(Config):
         run_aggregation: str,
         is_comparison_base: bool,
         display_name: Optional[str] = None,
+        only_bootstrap_runs: bool = False,
     ) -> None:
         super().__init__(
             name=(
@@ -31,3 +32,5 @@ class EvaluationModelConfig(Config):
             self.display_name = display_name
         else:
             self.display_name = model_config.name
+
+        self.only_bootstrap_runs = only_bootstrap_runs

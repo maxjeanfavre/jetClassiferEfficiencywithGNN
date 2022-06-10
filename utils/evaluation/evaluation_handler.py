@@ -97,8 +97,6 @@ def evaluation_handler(
 
     del jds_test
 
-    # eval_dfs = []
-
     for working_point_config in working_points_set_config.working_points:
         jds_test = JetEventsDataset(df=jds_test_df.copy(deep=True))
 
@@ -136,6 +134,7 @@ def evaluation_handler(
                     mkdir=False,
                 ).parent,
                 only_latest=only_latest,
+                only_bootstrap=evaluation_model_config.only_bootstrap_runs,
             )
             if len(model_run_ids) == 0:
                 logger.warning(
@@ -224,8 +223,13 @@ def evaluation_handler(
                     base_name = f"{evaluation_model_config.model_config.name}"
 
                 if evaluation_model_config.run_aggregation == "mean":
-                    pred_col = f"{base_name} (mean)"
-                    err_col = f"err_{base_name} (mean)"
+                    pred_col = (
+                        f"{base_name} "
+                        f"(mean of {len(model_run_ids)} "
+                        f"{'bootstrap ' if evaluation_model_config.only_bootstrap_runs else ''}"
+                        f"runs)"
+                    )
+                    err_col = f"err_{pred_col}"
 
                     check_columns_not_present_yet(
                         df=jds_test.df, cols=(pred_col, err_col)
@@ -234,8 +238,13 @@ def evaluation_handler(
                     jds_test.df[pred_col] = run_preds_df.mean(axis=1)
                     jds_test.df[err_col] = run_preds_df.std(axis=1)
                 elif evaluation_model_config.run_aggregation == "median":
-                    pred_col = f"{base_name} (median)"
-                    err_col = f"err_{base_name} (median)"
+                    pred_col = (
+                        f"{base_name} "
+                        f"(median of {len(model_run_ids)} "
+                        f"{'bootstrap ' if evaluation_model_config.only_bootstrap_runs else ''}"
+                        f"runs)"
+                    )
+                    err_col = f"err_{pred_col}"
 
                     check_columns_not_present_yet(
                         df=jds_test.df, cols=(pred_col, err_col)
@@ -379,16 +388,6 @@ def evaluation_handler(
             ] = evaluation_data
 
             print(json.dumps(evaluation_data_collection, indent=4))
-
-            # eval_df = pd.concat(
-            #     {
-            #         k: pd.DataFrame.from_dict(v, "index")
-            #         for k, v in evaluation_data_collection.items()
-            #     },
-            #     axis=0,
-            # )
-
-            # eval_dfs.append(eval_df)
 
             with open(evaluation_dir_path / "evaluation_data.json", "w") as f:
                 json.dump(obj=evaluation_data_collection, fp=f, indent=4)
