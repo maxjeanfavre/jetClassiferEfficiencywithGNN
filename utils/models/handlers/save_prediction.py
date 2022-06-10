@@ -33,7 +33,7 @@ def save_predictions_handler(
 
     set_up_logging_sinks(
         dir_path=model_dir_path,
-        base_filename=utils.filenames.save_prediction_log_filename(
+        base_filename=utils.filenames.save_prediction_log(
             prediction_dataset_handling_config_name=prediction_dataset_handling_config.name
         ),
     )
@@ -120,7 +120,7 @@ def save_predictions_handler(
 
         mp.save(
             dir_path=model_dir_path,
-            filename=utils.filenames.model_prediction_filename(
+            filename=utils.filenames.model_prediction(
                 working_point_name=working_point_config.name,
                 prediction_dataset_handling_name=prediction_dataset_handling_config.name,
             ),

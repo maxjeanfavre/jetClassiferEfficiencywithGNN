@@ -48,7 +48,7 @@ def train_handler(
 
     set_up_logging_sinks(
         dir_path=model_dir_path,
-        base_filename=utils.filenames.train_log_filename,
+        base_filename=utils.filenames.train_log,
     )
 
     logger.info("Starting 'train_handler'")
@@ -132,15 +132,13 @@ def train_handler(
 
     model.save(path=model_dir_path)
 
-    with open(
-        model_dir_path / utils.filenames.dataset_config_pickle_filename, "wb"
-    ) as f:
+    with open(model_dir_path / utils.filenames.dataset_config_pickle, "wb") as f:
         pickle.dump(obj=dataset_config, file=f)
 
-    with open(model_dir_path / utils.filenames.dataset_config_json_filename, "w") as f:
+    with open(model_dir_path / utils.filenames.dataset_config_json, "w") as f:
         json.dump(obj=dataset_config.__dict__, fp=f)
 
-    with open(model_dir_path / utils.filenames.model_config_pickle_filename, "wb") as f:
+    with open(model_dir_path / utils.filenames.model_config_pickle, "wb") as f:
         pickle.dump(obj=model_config, file=f)
 
     # with open(model_dir_path / utils.model_config_json_filename, "w") as f:

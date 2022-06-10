@@ -9,8 +9,16 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
         EvaluationModelConfig(
             model_config=gnn_model_config,
             run_selection="all",
+            run_aggregation="median",
+            is_comparison_base=True,
+            display_name="GNN1",
+        ),
+        EvaluationModelConfig(
+            model_config=gnn_model_config,
+            run_selection="all",
             run_aggregation="individual",
             is_comparison_base=False,
+            display_name="GNN 1",
         ),
     ],
 )

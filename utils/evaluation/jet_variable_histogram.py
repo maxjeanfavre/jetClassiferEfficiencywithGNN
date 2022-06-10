@@ -11,13 +11,16 @@ from utils.helpers.histograms.distances.bhattacharyya import (
 )
 from utils.helpers.histograms.distances.chi_squared import chi_squared_bin_wise
 from utils.helpers.histograms.distances.rmse import compute_rmse_distance
-from utils.plots.histogram import plot_histogram
+from utils.plots.evaluation_histogram import plot_evaluation_histogram
+from utils.plots.save_figure import save_figure
 
 
 def create_jet_variable_histogram(
     jds: JetEventsDataset,
     eff_pred_cols: List[str],
     var_col: str,
+    var_name_nice: str,
+    unit: Optional[str],
     evaluation_dir_path: pathlib.Path,
     bins: Union[int, np.ndarray] = 20,
     comparison_col: Optional[str] = None,
@@ -35,45 +38,56 @@ def create_jet_variable_histogram(
         else:
             df = jds.df[jds.df["Jet_hadronFlavour"] == flavour]
 
-        title_snake_case = f"{var_col}_{flavour}"
-        title_nice = f"{var_col} {flavour}"
+        filename = f"jet_variable_histogram_{var_col}_{flavour}"
 
-        fig, hist_data = plot_histogram(
+        if flavour == "inclusive":
+            title = f"{var_name_nice} (all flavours)"
+        else:
+            title = f"{var_name_nice} (only {utils.flavours_niceify[flavour]} jets)"
+
+        if unit is not None:
+            xlabel = f"{var_name_nice} {unit}"
+        else:
+            xlabel = f"{var_name_nice}"
+
+        fig, hist_data = plot_evaluation_histogram(
             data=df[var_col].to_numpy(),
-            data_name=var_col,
+            xlabel=xlabel,
+            ylabel="Jets",
             weights={
                 eff_pred_col: df[eff_pred_col].to_numpy()
                 for eff_pred_col in eff_pred_cols
             },
-            title=title_nice,
+            title=title,
             statistical_errors=True,
             bins=bins,
             comparison_name=comparison_col,
         )
 
-        fig.savefig(
-            fname=evaluation_dir_path
-            / utils.filenames.jet_variable_histogram_plot(title=title_snake_case),
-            dpi=utils.settings.plots_dpi,
+        save_figure(
+            fig=fig,
+            path=evaluation_dir_path,
+            filename=filename,
         )
 
         plt.close(fig=fig)
 
-        evaluation_data[title_snake_case] = {}
+        evaluation_data[title] = {}
 
         if comparison_col is not None:
-            for name in hist_data.keys():
-                y_obs = hist_data[name]["y"]
-                y_exp = hist_data[comparison_col]["y"]
+            for model_name in hist_data.keys():
+                if model_name != comparison_col:
+                    y_obs = hist_data[model_name]["y"]
+                    y_exp = hist_data[comparison_col]["y"]
 
-                chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
-                rmse = compute_rmse_distance(y_1=y_exp, y_2=y_obs)
-                bhattacharyya = compute_bhattacharyya_distance(y_1=y_obs, y_2=y_exp)
+                    chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
+                    rmse = compute_rmse_distance(y_1=y_exp, y_2=y_obs)
+                    bhattacharyya = compute_bhattacharyya_distance(y_1=y_obs, y_2=y_exp)
 
-                evaluation_data[title_snake_case][name] = {
-                    "chi_squared": chi_squared,
-                    "rmse": rmse,
-                    "bhattacharyya": bhattacharyya,
-                }
+                    evaluation_data[title][model_name] = {
+                        "chi_squared": chi_squared,
+                        "rmse": rmse,
+                        "bhattacharyya": bhattacharyya,
+                    }
 
     return evaluation_data

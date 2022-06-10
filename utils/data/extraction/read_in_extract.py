@@ -49,15 +49,14 @@ def read_in_extract(
 
     logger.trace("Starting reading of feather file")
     df = pd.read_feather(
-        path=extraction_dir_path / utils.filenames.dataset_extraction_filename,
+        path=extraction_dir_path / utils.filenames.dataset_extraction,
         columns=branches,
         use_threads=True,
     )
 
     logger.trace("Starting reading of event_n_jets")
     event_n_jets = np.load(
-        file=extraction_dir_path
-        / utils.filenames.dataset_extraction_event_n_jets_filename
+        file=extraction_dir_path / utils.filenames.dataset_extraction_event_n_jets
     )
 
     logger.trace("Generating index")

@@ -17,9 +17,10 @@ def compute_predictions_loss(
     data = {}
 
     for eff_col in eff_pred_cols:
-        y = jds.df[eff_col].to_numpy()
+        if eff_col != comparison_col:
+            y = jds.df[eff_col].to_numpy()
 
-        data[eff_col] = compute_predictions_loss_raw(y_pred=y, y_true=y_comp)
+            data[eff_col] = compute_predictions_loss_raw(y_pred=y, y_true=y_comp)
 
     return data
 
@@ -34,7 +35,10 @@ def compute_predictions_loss_raw(y_pred: np.ndarray, y_true: np.ndarray) -> Dict
     y_true = y_true[np.logical_and(y_pred_mask, y_true_mask)]
 
     rmse = compute_rmse(y_1=y_pred, y_2=y_true)
-    bce = sklearn.metrics.log_loss(y_true=y_true, y_pred=y_pred)
+    try:
+        bce = sklearn.metrics.log_loss(y_true=y_true, y_pred=y_pred)
+    except ValueError:
+        bce = None
 
     with torch.no_grad():
         rmse_torch = torch.sqrt(
@@ -45,10 +49,10 @@ def compute_predictions_loss_raw(y_pred: np.ndarray, y_true: np.ndarray) -> Dict
         ).item()
 
     res = {
-        "rmse": rmse,
-        "rmse_torch": rmse_torch,
-        "bce": bce,
-        "bce_torch": bce_torch,
+        "RMSE": rmse,
+        "RMSE_torch": rmse_torch,
+        "BCE": bce,
+        "BCE_torch": bce_torch,
     }
 
     return res

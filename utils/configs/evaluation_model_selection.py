@@ -21,6 +21,14 @@ class EvaluationModelSelectionConfig(Config):
                 "More than one model setting was marked as comparison_base"
             )
 
+        display_names = [
+            evaluation_model_config.display_name
+            for evaluation_model_config in evaluation_model_configs
+        ]
+
+        if len(display_names) != len(set(display_names)):
+            raise ValueError(f"Duplicate in display names: {display_names}")
+
         super().__init__(name=name)
 
         self.evaluation_model_configs = evaluation_model_configs

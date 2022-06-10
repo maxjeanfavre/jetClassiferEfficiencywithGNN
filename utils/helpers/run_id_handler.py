@@ -87,18 +87,21 @@ class RunIdHandler:
     @classmethod
     def get_run_ids(cls, dir_path: pathlib.Path, only_latest: bool) -> List[str]:
         # TODO(critical): allow filtering on bootstrap or not
-        run_ids = []
-        for p in dir_path.iterdir():
-            if p.is_dir() and not any(
-                p.name.startswith(prefix) for prefix in cls.possible_prefix_values
-            ):
-                run_ids.append(p.name)
-
-        run_ids = sorted(run_ids)
-
-        logger.trace(f"Found {len(run_ids)} start_times in {dir_path}")
-
-        if only_latest:
-            return [run_ids[-1]]
+        if not dir_path.exists() or not dir_path.is_dir():
+            return []
         else:
-            return run_ids
+            run_ids = []
+            for p in dir_path.iterdir():
+                if p.is_dir() and not any(
+                    p.name.startswith(prefix) for prefix in cls.possible_prefix_values
+                ):
+                    run_ids.append(p.name)
+
+            run_ids = sorted(run_ids)
+
+            logger.trace(f"Found {len(run_ids)} start_times in {dir_path}")
+
+            if only_latest:
+                return [run_ids[-1]]
+            else:
+                return run_ids

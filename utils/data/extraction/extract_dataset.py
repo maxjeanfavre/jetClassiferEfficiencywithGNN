@@ -32,7 +32,7 @@ def extract_dataset(
 
     set_up_logging_sinks(
         dir_path=extraction_dir_path,
-        base_filename=utils.filenames.extraction_log_filename,
+        base_filename=utils.filenames.extraction_log,
     )
 
     logger.info("Starting extraction")
@@ -95,14 +95,13 @@ def extract_dataset(
 
     logger.debug("Saving event_n_jets")
     np.save(
-        file=extraction_dir_path
-        / utils.filenames.dataset_extraction_event_n_jets_filename,
+        file=extraction_dir_path / utils.filenames.dataset_extraction_event_n_jets,
         arr=event_n_jets,
     )
 
     logger.debug("Saving feather file")
     df.reset_index(drop=True).to_feather(
-        path=extraction_dir_path / utils.filenames.dataset_extraction_filename,
+        path=extraction_dir_path / utils.filenames.dataset_extraction,
         version=2,
     )
 

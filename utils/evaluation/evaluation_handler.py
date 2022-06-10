@@ -1,6 +1,7 @@
 import copy
 import json
 import pickle
+import shutil
 import sys
 from typing import List
 
@@ -22,6 +23,7 @@ from utils.evaluation.leading_subleading_histograms import (
 )
 from utils.evaluation.predictions_histogram import create_predictions_histogram
 from utils.evaluation.predictions_loss import compute_predictions_loss
+from utils.helpers.columns_not_present_yet import check_columns_not_present_yet
 from utils.helpers.hash_dataframe import hash_df
 from utils.helpers.model_predictions import ModelPredictions
 from utils.helpers.run_id_handler import RunIdHandler
@@ -57,18 +59,13 @@ def evaluation_handler(
 
     logger.info("Evaluation starts")
 
-    run_id = RunIdHandler.generate_run_id(bootstrap=False)
+    run_id_handler = RunIdHandler.new_run_id(prefix="in_progress", bootstrap=False)
 
-    # branches_to_read_in = set()
-    # for model_config, _, _, _ in model_settings:
-    #     branches_to_read_in.update(model_config.get_required_columns())
-    # branches_to_read_in = tuple(branches_to_read_in)
-    branches_to_read_in = None
-    # TODO(low): fix
+    logger.debug(f"run_id: {run_id_handler.run_id}")
 
     jds = JetEventsDataset.read_in(
         dataset_config=dataset_config,
-        branches=branches_to_read_in,
+        branches=None,
     )
 
     jds_test = jds.split_data(
@@ -148,7 +145,7 @@ def evaluation_handler(
                 continue
 
             if evaluation_model_config.run_aggregation == "individual":
-                for model_run_id in model_run_ids:
+                for i, model_run_id in enumerate(model_run_ids):
                     model_dir_path = utils.paths.model_files_dir(
                         dataset_name=dataset_config.name,
                         dataset_handling_name=dataset_handling_config.name,
@@ -160,7 +157,7 @@ def evaluation_handler(
 
                     mp = ModelPredictions.load(
                         dir_path=model_dir_path,
-                        filename=utils.filenames.model_prediction_filename(
+                        filename=utils.filenames.model_prediction(
                             working_point_name=working_point_config.name,
                             prediction_dataset_handling_name=prediction_dataset_handling_config.name,
                         ),
@@ -169,15 +166,25 @@ def evaluation_handler(
                     assert mp.res.index.equals(jds_test.df.index)
                     assert mp.err.index.equals(jds_test.df.index)
 
-                    pred_col = f"res_{evaluation_model_config.model_config.name}_{model_run_id}"
-                    err_col = f"err_{evaluation_model_config.model_config.name}_{model_run_id}"
+                    if evaluation_model_config.display_name is not None:
+                        base_name = f"{evaluation_model_config.display_name}"
+                        if len(model_run_ids) > 1:
+                            base_name += f" ({i + 1})"
+                    else:
+                        base_name = f"{evaluation_model_config.model_config.name}_{model_run_id}"
+                    pred_col = f"{base_name}"
+                    err_col = f"err_{base_name}"
+
+                    check_columns_not_present_yet(
+                        df=jds_test.df, cols=(pred_col, err_col)
+                    )
 
                     jds_test.df[pred_col] = mp.res
                     jds_test.df[err_col] = mp.err
 
                     eff_pred_cols.append(pred_col)
                     eff_err_cols.append(err_col)
-            elif evaluation_model_config.run_aggregation == "mean":
+            elif evaluation_model_config.run_aggregation in ("mean", "median"):
                 run_preds_df = pd.DataFrame(index=jds_test.df.index)
 
                 for model_run_id in model_run_ids:
@@ -192,7 +199,7 @@ def evaluation_handler(
 
                     mp = ModelPredictions.load(
                         dir_path=model_dir_path,
-                        filename=utils.filenames.model_prediction_filename(
+                        filename=utils.filenames.model_prediction(
                             working_point_name=working_point_config.name,
                             prediction_dataset_handling_name=prediction_dataset_handling_config.name,
                         ),
@@ -211,15 +218,33 @@ def evaluation_handler(
                 #     .describe()
                 # )
 
-                pred_col = (
-                    f"res_{evaluation_model_config.model_config.name}_mean_ensemble"
-                )
-                err_col = (
-                    f"err_{evaluation_model_config.model_config.name}_mean_ensemble"
-                )
+                if evaluation_model_config.display_name is not None:
+                    base_name = f"{evaluation_model_config.display_name}"
+                else:
+                    base_name = f"{evaluation_model_config.model_config.name}"
 
-                jds_test.df[pred_col] = run_preds_df.mean(axis=1)
-                jds_test.df[err_col] = run_preds_df.std(axis=1)
+                if evaluation_model_config.run_aggregation == "mean":
+                    pred_col = f"{base_name} (mean)"
+                    err_col = f"err_{base_name} (mean)"
+
+                    check_columns_not_present_yet(
+                        df=jds_test.df, cols=(pred_col, err_col)
+                    )
+
+                    jds_test.df[pred_col] = run_preds_df.mean(axis=1)
+                    jds_test.df[err_col] = run_preds_df.std(axis=1)
+                elif evaluation_model_config.run_aggregation == "median":
+                    pred_col = f"{base_name} (median)"
+                    err_col = f"err_{base_name} (median)"
+
+                    check_columns_not_present_yet(
+                        df=jds_test.df, cols=(pred_col, err_col)
+                    )
+
+                    jds_test.df[pred_col] = run_preds_df.median(axis=1)
+                    jds_test.df[err_col] = run_preds_df.std(axis=1)
+                else:
+                    raise ValueError("You shouldn't reach this point")
 
                 eff_pred_cols.append(pred_col)
                 eff_err_cols.append(err_col)
@@ -248,16 +273,19 @@ def evaluation_handler(
         del jds_test
 
         for evaluation_data_manipulation_config in evaluation_data_manipulation_configs:
+            evaluation_name = (
+                f"{prediction_dataset_handling_config.name}_"
+                f"{evaluation_model_selection_config.name}_"
+                f"{evaluation_data_manipulation_config.name}"
+            )
+
+            run_id_handler.prefix = "in_progress"
             evaluation_dir_path = utils.paths.evaluation_files_dir(
                 dataset_name=dataset_config.name,
                 dataset_handling_name=dataset_handling_config.name,
                 working_points_set_name=working_points_set_config.name,
-                evaluation_name=(
-                    f"{prediction_dataset_handling_config.name}_"
-                    f"{evaluation_model_selection_config.name}_"
-                    f"{evaluation_data_manipulation_config.name}"
-                ),
-                run_id=run_id,
+                evaluation_name=evaluation_name,
+                run_id=run_id_handler.get_str(),
                 working_point_name=working_point_config.name,
                 mkdir=True,
             )
@@ -311,32 +339,21 @@ def evaluation_handler(
                 evaluation_dir_path=evaluation_dir_path,
             )
 
-            # for var_col, bins in [
-            #     [
-            #         "Jet_Pt",
-            #         np.array(
-            #             [-np.inf, 0, 30, 50, 70, 100, 150, 200, 300, 600, 1000, np.inf]
-            #         ),
-            #     ],
-            #     [
-            #         "Jet_eta",
-            #         np.array(
-            #             [-np.inf, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, np.inf]
-            #         ),
-            #     ],
-            # ]:
             evaluation_data_collection["jet_variable_histograms"] = {}
-            for var_col in [
-                "Jet_Pt",
-                "Jet_eta",
-                "Jet_phi",
-                "Jet_mass",
-                "Jet_area",
+            for var_col, var_name_nice, unit in [
+                # not using \text{} as this caused errors
+                ["Jet_Pt", r"$p_\mathrm{T}$", "[GeV]"],
+                ["Jet_eta", r"$\eta$", None],
+                ["Jet_phi", r"$\phi$", None],
+                ["Jet_mass", r"Jet mass", "[GeV]"],
+                ["Jet_area", r"Jet area", None],
             ]:
                 evaluation_data = create_jet_variable_histogram(
                     jds=jds_test_with_predictions,
                     eff_pred_cols=eff_pred_cols,
                     var_col=var_col,
+                    var_name_nice=var_name_nice,
+                    unit=unit,
                     evaluation_dir_path=evaluation_dir_path,
                     bins=20,
                     comparison_col=comparison_pred_col,
@@ -380,3 +397,17 @@ def evaluation_handler(
                 pickle.dump(obj=evaluation_data_collection, file=f)
 
             del jds_test_with_predictions
+
+            run_id_handler.prefix = None
+            evaluation_dir_path.rename(
+                target=utils.paths.evaluation_files_dir(
+                    dataset_name=dataset_config.name,
+                    dataset_handling_name=dataset_handling_config.name,
+                    working_points_set_name=working_points_set_config.name,
+                    evaluation_name=evaluation_name,
+                    run_id=run_id_handler.get_str(),
+                    working_point_name=working_point_config.name,
+                    mkdir=True,
+                )
+            )
+            shutil.rmtree(path=evaluation_dir_path.parent)

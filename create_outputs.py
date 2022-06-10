@@ -1,8 +1,4 @@
-import utils
-from utils.data.jet_events_dataset import JetEventsDataset
-from utils.outputs.dataset_plots import create_dataset_plots
-from utils.outputs.efficiency_map_plots import create_efficiency_map_histogram_plots
-from utils.outputs.mistag_rates import save_light_jet_mistag_rates
+from utils.outputs.create_outputs import create_outputs
 
 
 def main():
@@ -30,38 +26,12 @@ def main():
         QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
         QCD_Pt_300_470_MuEnrichedPt5_test_dataset_config,
     ]:
-        dataset_output_dir_path = utils.paths.dataset_output_dir(
-            dataset_name=dataset_config.name,
-            mkdir=True,
-        )
-
-        jds = JetEventsDataset.read_in(
+        create_outputs(
             dataset_config=dataset_config,
-            branches=None,
+            working_points_set_configs=[standard_working_points_set_config],
+            dataset_handling_configs=[standard_dataset_handling_config],
+            efficiency_map_model_configs=[eff_map_pt_eta_model_config],
         )
-
-        create_dataset_plots(
-            dataset_config=dataset_config,
-            output_dir_path=dataset_output_dir_path,
-            jds=jds,
-        )
-
-        for working_points_set_config in [standard_working_points_set_config]:
-            save_light_jet_mistag_rates(
-                dataset_config=dataset_config,
-                working_points_set_config=working_points_set_config,
-                output_dir_path=dataset_output_dir_path,
-                jds=jds,
-            )
-
-        for dataset_handling_config in [standard_dataset_handling_config]:
-            for model_config in [eff_map_pt_eta_model_config]:
-                create_efficiency_map_histogram_plots(
-                    dataset_config=dataset_config,
-                    dataset_handling_config=dataset_handling_config,
-                    working_points_set_config=working_points_set_config,
-                    model_config=model_config,
-                )
 
 
 if __name__ == "__main__":

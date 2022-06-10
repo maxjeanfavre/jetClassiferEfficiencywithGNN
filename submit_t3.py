@@ -1,4 +1,3 @@
-import datetime as dt
 import subprocess
 from typing import Dict, List, Optional
 
@@ -118,7 +117,10 @@ def get_slurm_kwargs(
                 time_hours = 1
                 mem_gb = 10
             else:
-                time_hours = 12
+                if "single_wp_mode" in model:
+                    time_hours = 48
+                else:
+                    time_hours = 18
                 if dataset.startswith("TTTo2L2Nu"):
                     mem_gb = 80
                 else:
@@ -198,9 +200,9 @@ def get_slurm_kwargs(
         else:
             if dataset.startswith("TTTo2L2Nu"):
                 time_hours = 8
-                mem_gb = 80
+                mem_gb = 200
             else:
-                time_hours = 1
+                time_hours = 2
                 mem_gb = 20
 
     else:
@@ -234,13 +236,10 @@ def get_slurm_kwargs(
             )
         account = "t3"
 
-    assert (
-        time_hours < 24
-    )  # otherwise the str from dt.timedelta is not in a format that works with slurm
-    time_ = str(
-        dt.timedelta(seconds=int(time_hours * 3600))
-    )  # seconds instead of hours to make sure seconds is int so I don't get a
-    # str like from str(dt.timedelta(hours=0.011))
+    time_seconds = int(time_hours * 3600)
+    time_ = "{:02}:{:02}:{:02}".format(
+        time_seconds // 3600, time_seconds % 3600 // 60, time_seconds % 60
+    )
 
     nodes = "1"
     ntasks = "1"

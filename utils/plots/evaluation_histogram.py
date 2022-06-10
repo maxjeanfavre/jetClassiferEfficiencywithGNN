@@ -15,9 +15,10 @@ from utils.helpers.histograms.get_bins import (
 )
 
 
-def plot_histogram(
+def plot_evaluation_histogram(
     data: np.ndarray,
-    data_name: str,
+    xlabel: str,
+    ylabel: str,
     weights: Dict[str, Optional[np.ndarray]],
     title: str,
     statistical_errors: bool,
@@ -78,6 +79,8 @@ def plot_histogram(
         bin_edges=bin_edges,
     )
 
+    figsize = (9, 9)
+
     if comparison_name is not None:
         fig, axes = plt.subplots(
             nrows=3,
@@ -88,14 +91,14 @@ def plot_histogram(
                 "height_ratios": [3, 1, 1],
             },
             constrained_layout=True,
-            figsize=(15, 15),
+            figsize=figsize,
         )
     else:
         fig, ax = plt.subplots(
             nrows=1,
             ncols=1,
             constrained_layout=True,
-            figsize=(15, 15),
+            figsize=figsize,
         )
         axes = [ax]
 
@@ -136,10 +139,12 @@ def plot_histogram(
         )
 
     axes[0].legend()
-    axes[0].set_xlabel(data_name)
-    axes[0].set_ylabel("Events")
+    axes[0].set_ylabel(ylabel=ylabel)
     # axes[0].set_xscale("log")
     # axes[0].set_xticks(bin_edges[np.isfinite(bin_edges)])
+
+    if comparison_name is None:
+        axes[0].set_xlabel(xlabel=xlabel)
 
     if comparison_name is not None:
         # plotted_something = False
@@ -176,7 +181,6 @@ def plot_histogram(
         # ):  # only draw legend if something was plotted to avoid warning
         #     axes[1].legend()
 
-        axes[1].set_xlabel(data_name)
         axes[1].set_ylabel("Ratio of central values")
         axes[1].set_ylim(
             [max(axes[1].get_ylim()[0], 0.8), min(axes[1].get_ylim()[1], 1.2)]
@@ -210,7 +214,7 @@ def plot_histogram(
         # ):  # only draw legend if something was plotted to avoid warning
         #     axes[2].legend()
 
-        axes[2].set_xlabel(data_name)
+        axes[2].set_xlabel(xlabel=xlabel)
         axes[2].set_ylabel("Ratio of error bars")
 
     return fig, hist_data

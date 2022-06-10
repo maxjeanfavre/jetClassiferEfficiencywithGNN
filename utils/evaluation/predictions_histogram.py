@@ -3,11 +3,11 @@ from typing import List
 
 from matplotlib import pyplot as plt
 
-import utils
 from utils.data.jet_events_dataset import JetEventsDataset
 from utils.plots.predictions_histogram import (
     plot_predictions_histogram,
 )
+from utils.plots.save_figure import save_figure
 
 
 def create_predictions_histogram(
@@ -20,10 +20,11 @@ def create_predictions_histogram(
         eff_pred_cols=eff_pred_cols,
     )
 
-    fig.savefig(
-        fname=evaluation_dir_path
-        / utils.filenames.efficiency_prediction_histogram_plot,
-        dpi=utils.settings.plots_dpi,
+    filename = "eff_pred_hist"
+    save_figure(
+        fig=fig,
+        path=evaluation_dir_path,
+        filename=filename,
     )
 
     plt.close(fig=fig)

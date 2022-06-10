@@ -153,7 +153,7 @@ class Paths:
             mkdir=mkdir,
         )
 
-    def dataset_output_dir(
+    def dataset_outputs_dir(
         self,
         dataset_name: str,
         mkdir: bool,
@@ -168,7 +168,7 @@ class Paths:
             Path to the directory of dataset output files.
         """
         return self.safe_return(
-            self.root_path / "data" / dataset_name / "output",
+            self.root_path / "data" / dataset_name / "outputs",
             path_type="directory",
             mkdir=mkdir,
         )

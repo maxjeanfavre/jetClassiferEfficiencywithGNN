@@ -23,7 +23,8 @@ from utils.helpers.kinematics.delta_r_two_jet_events import (
     compute_delta_r_two_jet_events,
 )
 from utils.helpers.kinematics.invariant_mass import compute_invariant_mass
-from utils.plots.histogram import plot_histogram
+from utils.plots.evaluation_histogram import plot_evaluation_histogram
+from utils.plots.save_figure import save_figure
 
 
 def create_leading_subleading_histograms(
@@ -156,53 +157,78 @@ def create_leading_subleading_histograms(
             phi=jds_selection.df["Jet_phi"].to_numpy(),
         )
 
-        for data_col in ["invariant_mass", "delta_r"]:
+        for var_col, var_name_nice, unit in [
+            ["invariant_mass", r"$M_{1,2}$", "[GeV]"],
+            ["delta_r", r"$\Delta R$", None],
+        ]:
             if flavour_selection == "inclusive":
-                title_snake_case = f"{data_col}_{flavour_selection}"
-                title_nice = f"{data_col} {flavour_selection}"
-            else:
-                title_snake_case = (
-                    f"{data_col}_{flavour_selection[0]}_{flavour_selection[1]}"
+                filename = f"leading_subleading_{var_col}_{flavour_selection}"
+                title_full = (
+                    f"{var_name_nice} leading and sub-leading jet pair (all flavours)"
                 )
-                title_nice = f"{data_col} {flavour_selection[0]} {flavour_selection[1]}"
-            fig, hist_data = plot_histogram(
-                data=df[data_col].to_numpy(),
-                data_name=data_col,
+                title_short = f"{var_name_nice} (all jet flavours)"
+            else:
+                filename = f"leading_subleading_{var_col}_{flavour_selection[0]}_{flavour_selection[1]}"
+                title_full = (
+                    f"{var_name_nice} leading and sub-leading jet pair "
+                    "(flavours: "
+                    f"{utils.flavours_niceify[flavour_selection[0]]} "
+                    f"{utils.flavours_niceify[flavour_selection[1]]}"
+                    ")"
+                )
+                title_short = (
+                    f"{var_name_nice} "
+                    "("
+                    f"{utils.flavours_niceify[flavour_selection[0]]} "
+                    f"{utils.flavours_niceify[flavour_selection[1]]}"
+                    ")"
+                )
+
+            if unit is not None:
+                xlabel = f"{var_name_nice} {unit}"
+            else:
+                xlabel = f"{var_name_nice}"
+
+            fig, hist_data = plot_evaluation_histogram(
+                data=df[var_col].to_numpy(),
+                xlabel=xlabel,
+                ylabel="Events",
                 weights={
                     eff_pred_col: df[eff_pred_col].to_numpy()
                     for eff_pred_col in eff_pred_cols
                 },
-                title=title_nice,
+                title=title_full,
                 statistical_errors=True,
                 bins=20,
                 comparison_name=comparison_col,
             )
 
-            fig.savefig(
-                fname=evaluation_dir_path
-                / utils.filenames.leading_subleading_histogram_plot(
-                    title=title_snake_case
-                ),
-                dpi=utils.settings.plots_dpi,
+            save_figure(
+                fig=fig,
+                path=evaluation_dir_path,
+                filename=filename,
             )
 
             plt.close(fig=fig)
 
-            evaluation_data[title_snake_case] = {}
+            evaluation_data[title_short] = {}
 
             if comparison_col is not None:
-                for name in hist_data.keys():
-                    y_obs = hist_data[name]["y"]
-                    y_exp = hist_data[comparison_col]["y"]
+                for model_name in hist_data.keys():
+                    if model_name != comparison_col:
+                        y_obs = hist_data[model_name]["y"]
+                        y_exp = hist_data[comparison_col]["y"]
 
-                    chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
-                    rmse = compute_rmse_distance(y_1=y_exp, y_2=y_obs)
-                    bhattacharyya = compute_bhattacharyya_distance(y_1=y_obs, y_2=y_exp)
+                        chi_squared = chi_squared_bin_wise(y_obs=y_obs, y_exp=y_exp)
+                        rmse = compute_rmse_distance(y_1=y_exp, y_2=y_obs)
+                        bhattacharyya = compute_bhattacharyya_distance(
+                            y_1=y_obs, y_2=y_exp
+                        )
 
-                    evaluation_data[title_snake_case][name] = {
-                        "chi_squared": chi_squared,
-                        "rmse": rmse,
-                        "bhattacharyya": bhattacharyya,
-                    }
+                        evaluation_data[title_short][model_name] = {
+                            "chi_squared": chi_squared,
+                            "rmse": rmse,
+                            "bhattacharyya": bhattacharyya,
+                        }
 
     return evaluation_data
