@@ -14,7 +14,7 @@ from utils.outputs.jet_multiplicity_histogram import (
     create_jet_multiplicity_histogram_inclusive,
 )
 from utils.outputs.jet_variable_histograms import create_jet_variable_histograms
-from utils.outputs.mistag_rates import save_light_jet_mistag_rates
+from utils.outputs.working_point_information import save_working_point_information
 
 
 def create_outputs(
@@ -63,7 +63,7 @@ def create_outputs(
     )
 
     for working_points_set_config in working_points_set_configs:
-        save_light_jet_mistag_rates(
+        save_working_point_information(
             dataset_config=dataset_config,
             working_points_set_config=working_points_set_config,
             output_dir_path=dataset_output_dir_path,

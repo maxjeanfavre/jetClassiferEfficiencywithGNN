@@ -7,7 +7,7 @@ from utils.configs.working_points_set import WorkingPointsSetConfig
 from utils.data.jet_events_dataset import JetEventsDataset
 
 
-def save_light_jet_mistag_rates(
+def save_working_point_information(
     dataset_config: DatasetConfig,
     working_points_set_config: WorkingPointsSetConfig,
     output_dir_path: pathlib.Path,
@@ -33,8 +33,17 @@ def save_light_jet_mistag_rates(
 
         light_jet_mistag_rate = n_light_jets_passing_working_point / n_light_jets
 
+        n_b_jets = (jds.df["Jet_hadronFlavour"] == 5).sum()
+
+        n_b_jets_passing_working_point = (
+            jds.df.loc[jet_boolean_mask, "Jet_hadronFlavour"] == 5
+        ).sum()
+
+        b_jet_efficiency = n_b_jets_passing_working_point / n_b_jets
+
         data[working_point_config.name] = {
             "light_jet_mistag_rate": light_jet_mistag_rate,
+            "b_jet_efficiency": b_jet_efficiency,
         }
 
     with open(
