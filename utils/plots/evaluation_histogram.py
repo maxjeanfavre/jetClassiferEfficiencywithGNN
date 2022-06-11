@@ -136,7 +136,11 @@ def plot_evaluation_histogram(
             "y_err": bin_counts_statistical_errors,
         }
 
-        if len(weights) > threshold_n_lines and comparison_name is not None and name == comparison_name:
+        if (
+            len(weights) > threshold_n_lines
+            and comparison_name is not None
+            and name == comparison_name
+        ):
             color = "k"
         else:
             color = next(color_cycler)

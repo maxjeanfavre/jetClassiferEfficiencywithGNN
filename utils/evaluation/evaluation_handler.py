@@ -97,7 +97,9 @@ def evaluation_handler(
 
     del jds_test
 
-    for working_point_config in working_points_set_config.working_points[::-1]:  # reverse order
+    for working_point_config in working_points_set_config.working_points[
+        ::-1
+    ]:  # reverse order
         jds_test = JetEventsDataset(df=jds_test_df.copy(deep=True))
 
         assert hash_df(jds_test.df) == jds_test_df_hash
