@@ -199,8 +199,11 @@ def get_slurm_kwargs(
             mem_gb = 10
         else:
             if dataset.startswith("TTTo2L2Nu"):
-                time_hours = 8
-                mem_gb = 200
+                time_hours = 9
+                if evaluation_model_selection.startswith("individual"):
+                    mem_gb = 220
+                else:
+                    mem_gb = 120
             else:
                 time_hours = 2
                 mem_gb = 20

@@ -2,6 +2,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+from loguru import logger
 
 from utils.exceptions import UnexpectedError
 from utils.helpers.histograms.bin_counts import (
@@ -24,6 +25,7 @@ def plot_evaluation_histogram(
     statistical_errors: bool,
     bins: Union[int, np.ndarray] = 20,
     comparison_name: Optional[str] = None,
+    plot_info_string: Optional[str] = None,
 ) -> Tuple[plt.Figure, Dict]:
     if not isinstance(data, np.ndarray):
         raise ValueError(f"'data' has to be np.ndarray. Got type: {type(data)}")
@@ -79,7 +81,7 @@ def plot_evaluation_histogram(
         bin_edges=bin_edges,
     )
 
-    figsize = (9, 9)
+    figsize = (9.5, 9.5)
 
     if comparison_name is not None:
         fig, axes = plt.subplots(
@@ -106,7 +108,17 @@ def plot_evaluation_histogram(
 
     hist_data = {}
 
-    color_cycler = plt.rcParams["axes.prop_cycle"]()
+    threshold_n_lines = 10  # can't be more than 10 because matplotlib default color cycle is of length 10
+
+    if len(weights) <= threshold_n_lines:
+        colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    else:
+        n_colors = len(weights)
+        colors = plt.get_cmap("gist_rainbow")(np.linspace(0, 1, n_colors))
+
+    assert len(colors) >= len(weights)
+    color_cycler = iter(colors)
+
     used_colors = {}
 
     for name, weight in weights.items():
@@ -124,8 +136,19 @@ def plot_evaluation_histogram(
             "y_err": bin_counts_statistical_errors,
         }
 
-        color = color_cycler.__next__()["color"]
+        if len(weights) > threshold_n_lines and comparison_name is not None and name == comparison_name:
+            color = "k"
+        else:
+            color = next(color_cycler)
         used_colors[name] = color
+
+        if len(weights) > threshold_n_lines:
+            if comparison_name is not None and name == comparison_name:
+                label = name
+            else:
+                label = None
+        else:
+            label = name
 
         axes[0].errorbar(
             x=bin_midpoints,
@@ -134,7 +157,7 @@ def plot_evaluation_histogram(
             xerr=bin_widths / 2,
             capsize=5,
             ls="None",
-            label=name,
+            label=label,
             ecolor=color,
         )
 
@@ -145,6 +168,29 @@ def plot_evaluation_histogram(
 
     if comparison_name is None:
         axes[0].set_xlabel(xlabel=xlabel)
+
+    if plot_info_string is not None:
+        if plot_info_string.count("\n") > 4:  # more than 5 lines
+            logger.warning(
+                "Can't plot plot_info_string because it has too many lines: "
+                f"{plot_info_string = }"
+            )
+        elif any(len(line) > 150 for line in plot_info_string.split("\n")):
+            # at least one line is too long
+            logger.warning(
+                "Can't plot plot_info_string because at least one line is too long: "
+                f"{plot_info_string = }"
+            )
+        else:
+            axes[0].text(
+                1,
+                1,
+                plot_info_string,
+                horizontalalignment="right",
+                verticalalignment="bottom",
+                transform=axes[0].transAxes,
+                fontsize="xx-small",
+            )
 
     if comparison_name is not None:
         # plotted_something = False

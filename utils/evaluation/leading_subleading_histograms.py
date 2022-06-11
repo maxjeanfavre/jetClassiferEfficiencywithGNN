@@ -32,6 +32,7 @@ def create_leading_subleading_histograms(
     eff_pred_cols: List[str],
     evaluation_dir_path: pathlib.Path,
     comparison_col: Optional[str] = None,
+    plot_info_string: Optional[str] = None,
 ):
     if comparison_col is not None:
         assert comparison_col in eff_pred_cols
@@ -201,6 +202,7 @@ def create_leading_subleading_histograms(
                 statistical_errors=True,
                 bins=20,
                 comparison_name=comparison_col,
+                plot_info_string=plot_info_string,
             )
 
             save_figure(

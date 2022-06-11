@@ -97,7 +97,7 @@ def evaluation_handler(
 
     del jds_test
 
-    for working_point_config in working_points_set_config.working_points:
+    for working_point_config in working_points_set_config.working_points[::-1]:  # reverse order
         jds_test = JetEventsDataset(df=jds_test_df.copy(deep=True))
 
         assert hash_df(jds_test.df) == jds_test_df_hash
@@ -110,6 +110,8 @@ def evaluation_handler(
         eff_err_cols = []
 
         comparison_pred_col = None
+
+        plot_info_strings = []
 
         for (
             evaluation_model_config
@@ -183,6 +185,8 @@ def evaluation_handler(
 
                     eff_pred_cols.append(pred_col)
                     eff_err_cols.append(err_col)
+
+                    plot_info_strings.append(f"{base_name}: individual")
             elif evaluation_model_config.run_aggregation in ("mean", "median"):
                 run_preds_df = pd.DataFrame(index=jds_test.df.index)
 
@@ -223,12 +227,7 @@ def evaluation_handler(
                     base_name = f"{evaluation_model_config.model_config.name}"
 
                 if evaluation_model_config.run_aggregation == "mean":
-                    pred_col = (
-                        f"{base_name} "
-                        f"(mean of {len(model_run_ids)} "
-                        f"{'bootstrap ' if evaluation_model_config.only_bootstrap_runs else ''}"
-                        f"runs)"
-                    )
+                    pred_col = f"{base_name}"
                     err_col = f"err_{pred_col}"
 
                     check_columns_not_present_yet(
@@ -237,13 +236,16 @@ def evaluation_handler(
 
                     jds_test.df[pred_col] = run_preds_df.mean(axis=1)
                     jds_test.df[err_col] = run_preds_df.std(axis=1)
-                elif evaluation_model_config.run_aggregation == "median":
-                    pred_col = (
-                        f"{base_name} "
-                        f"(median of {len(model_run_ids)} "
+
+                    plot_info_strings.append(
+                        f"{base_name}: "
+                        "mean, "
+                        f"{len(model_run_ids)} "
                         f"{'bootstrap ' if evaluation_model_config.only_bootstrap_runs else ''}"
-                        f"runs)"
+                        "runs"
                     )
+                elif evaluation_model_config.run_aggregation == "median":
+                    pred_col = f"{base_name}"
                     err_col = f"err_{pred_col}"
 
                     check_columns_not_present_yet(
@@ -252,6 +254,13 @@ def evaluation_handler(
 
                     jds_test.df[pred_col] = run_preds_df.median(axis=1)
                     jds_test.df[err_col] = run_preds_df.std(axis=1)
+                    plot_info_strings.append(
+                        f"{base_name}: "
+                        "median, "
+                        f"{len(model_run_ids)} "
+                        f"{'bootstrap ' if evaluation_model_config.only_bootstrap_runs else ''}"
+                        "runs"
+                    )
                 else:
                     raise ValueError("You shouldn't reach this point")
 
@@ -271,6 +280,8 @@ def evaluation_handler(
                         "More than one model setting was marked as comparison model"
                     )
                 comparison_pred_col = pred_col
+
+        plot_info_string = "\n".join(plot_info_strings)
 
         jds_test_with_predictions_df = jds_test.df
         jds_test_with_predictions_df_hash = hash_df(jds_test.df)
@@ -366,6 +377,7 @@ def evaluation_handler(
                     evaluation_dir_path=evaluation_dir_path,
                     bins=20,
                     comparison_col=comparison_pred_col,
+                    plot_info_string=plot_info_string,
                 )
                 assert set(evaluation_data.keys()).isdisjoint(
                     set(evaluation_data_collection["jet_variable_histograms"].keys())
@@ -379,6 +391,7 @@ def evaluation_handler(
                 eff_pred_cols=eff_pred_cols,
                 evaluation_dir_path=evaluation_dir_path,
                 comparison_col=comparison_pred_col,
+                plot_info_string=plot_info_string,
             )
             assert set(evaluation_data.keys()).isdisjoint(
                 set(evaluation_data_collection.keys())

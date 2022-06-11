@@ -24,6 +24,7 @@ def create_jet_variable_histogram(
     evaluation_dir_path: pathlib.Path,
     bins: Union[int, np.ndarray] = 20,
     comparison_col: Optional[str] = None,
+    plot_info_string: Optional[str] = None,
 ) -> Dict:
     evaluation_data = {}
 
@@ -62,6 +63,7 @@ def create_jet_variable_histogram(
             statistical_errors=True,
             bins=bins,
             comparison_name=comparison_col,
+            plot_info_string=plot_info_string,
         )
 
         save_figure(
