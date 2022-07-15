@@ -380,7 +380,7 @@ def main():
     parser_train.add_argument(
         "--array",
         type=int,
-        choices=range(2, 15 + 1),
+        choices=range(1, 25 + 1),
         help="spawn a job array",
     )
 

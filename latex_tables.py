@@ -207,6 +207,12 @@ def main():
     from configs.evaluation_model_selection.selection_1_median import (
         evaluation_model_selection_config as selection_1_median_evaluation_model_selection_config,
     )
+    from configs.evaluation_model_selection.selection_2_median import (
+        evaluation_model_selection_config as selection_2_median_evaluation_model_selection_config,
+    )
+    from configs.evaluation_model_selection.selection_3_median import (
+        evaluation_model_selection_config as selection_3_median_evaluation_model_selection_config,
+    )
     from configs.evaluation_model_selection.selection_1_mean_and_median import (
         evaluation_model_selection_config as selection_1_mean_and_median_evaluation_model_selection_config,
     )
@@ -215,6 +221,12 @@ def main():
     )
     from configs.evaluation_model_selection.individual_gnn_variables_1_and_median import (
         evaluation_model_selection_config as individual_gnn_variables_1_and_median_evaluation_model_selection_config,
+    )
+    from configs.evaluation_model_selection.gnn_median_gnn_large_hidden_state_median import (
+        evaluation_model_selection_config as gnn_median_gnn_large_hidden_state_median_evaluation_model_selection_config,
+    )
+    from configs.evaluation_model_selection.gnn_variables_1_median_gnn_variables_1_large_hidden_state_median import (
+        evaluation_model_selection_config as gnn_variables_1_median_gnn_variables_1_large_hidden_state_median_evaluation_model_selection_config,
     )
     from configs.evaluation_data_manipulation.no_changes import (
         evaluation_data_manipulation_config as no_changes_evaluation_data_manipulation_config,
@@ -241,9 +253,13 @@ def main():
                     for evaluation_model_selection_config in [
                         selection_1_mean_evaluation_model_selection_config,
                         selection_1_median_evaluation_model_selection_config,
+                        selection_2_median_evaluation_model_selection_config,
+                        selection_3_median_evaluation_model_selection_config,
                         selection_1_mean_and_median_evaluation_model_selection_config,
                         individual_gnn_and_median_evaluation_model_selection_config,
                         individual_gnn_variables_1_and_median_evaluation_model_selection_config,
+                        gnn_median_gnn_large_hidden_state_median_evaluation_model_selection_config,
+                        gnn_variables_1_median_gnn_variables_1_large_hidden_state_median_evaluation_model_selection_config,
                     ]:
                         for evaluation_data_manipulation_config in [
                             no_changes_evaluation_data_manipulation_config,

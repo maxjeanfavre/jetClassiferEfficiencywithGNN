@@ -174,7 +174,7 @@ def plot_evaluation_histogram(
         axes[0].set_xlabel(xlabel=xlabel)
 
     if plot_info_string is not None:
-        if plot_info_string.count("\n") > 4:  # more than 5 lines
+        if plot_info_string.count("\n") > 9:  # more than 10 lines
             logger.warning(
                 "Can't plot plot_info_string because it has too many lines: "
                 f"{plot_info_string = }"
