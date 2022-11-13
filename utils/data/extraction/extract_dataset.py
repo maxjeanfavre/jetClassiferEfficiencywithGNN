@@ -65,6 +65,7 @@ def extract_dataset(
             f"{branches_to_not_read_in}"
         )
         branches = list(set(branches) - branches_to_not_read_in)
+    #print("branches_to_not_read_in ",branches_to_not_read_in)    
 
     logger.trace("Starting reading in root files")
     df = read_in_root_files_in_chunks(
@@ -92,6 +93,7 @@ def extract_dataset(
 
     logger.trace("Getting event_n_jets")
     event_n_jets = reconstruct_event_n_jets_from_groupby_zeroth_level_values(df=df)
+    print("event_n_jets :",event_n_jets)
 
     logger.debug("Saving event_n_jets")
     np.save(

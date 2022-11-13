@@ -1,6 +1,7 @@
 import pathlib
 from typing import Optional
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -34,15 +35,26 @@ def create_jet_multiplicity_histogram_inclusive(
 
     height_normalized = height / np.sum(height)
 
+    matplotlib.rcParams['font.sans-serif'] = 'Arial'    
     fig, ax = plt.subplots()
-    fig.suptitle(
-        (
-            "Normalised histogram of the jet multiplicity in the "
-            f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
-            " dataset."
-        ),
-        wrap=True,
+    ax.text(0.00, 1.01, 'CMS Simulation Preliminary',transform=ax.transAxes)
+    caption = (
+        f"Normalised histogram of the jet multiplicity in the "
+        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+        " dataset."
     )
+    txt = ax.text(0.00,-0.12,caption,va="top",transform=ax.transAxes,wrap=True)
+    fig_xsize, fig_ysize = fig.get_size_inches()*fig.dpi
+    #below works if tight layout is switched off
+    txt._get_wrap_line_width = lambda : fig_xsize
+    #fig.suptitle(
+    #    (
+    #        "Normalised histogram of the jet multiplicity in the "
+    #        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+    #        " dataset."
+    #    ),
+    #    wrap=True,
+    #)
     ax.bar(
         x=x,
         height=height_normalized,
@@ -77,15 +89,16 @@ def create_jet_multiplicity_histogram_by_flavour(
 
     flavours = sorted(set(jds.df["Jet_hadronFlavour"].to_numpy()))
 
+    matplotlib.rcParams['font.sans-serif'] = 'Arial'    
     fig, axes = plt.subplots(len(flavours), 1, sharex="all")
-    fig.suptitle(
-        (
-            "Jet multiplicity by flavour in the "
-            f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
-            " dataset."
-        ),
-        wrap=True,
-    )
+    #fig.suptitle(
+    #    (
+    #        "Jet multiplicity by flavour in the "
+    #        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+    #        " dataset."
+    #    ),
+    #    wrap=True,
+    #)
 
     for i, flavour in enumerate(
         flavours
@@ -104,6 +117,16 @@ def create_jet_multiplicity_histogram_by_flavour(
             color=utils.settings.quark_flavour_colours[flavour],
         )
         axes[i].set_xlim([0, 20])  # TODO(critical): change to do it properly
+        axes[i].text(0.00, 1.01, 'CMS Simulation Preliminary',transform=axes[i].transAxes)
+    caption = (
+        f"Jet multiplicity by flavour in the "
+        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+        " dataset."
+    )
+    txt = axes[-1].text(0.00,-0.25,caption,va="top",transform=axes[-1].transAxes,wrap=True)
+    fig_xsize, fig_ysize = fig.get_size_inches()*fig.dpi
+    #below works if tight layout is switched off
+    txt._get_wrap_line_width = lambda : fig_xsize
 
     fig.tight_layout()
 

@@ -159,8 +159,8 @@ def create_leading_subleading_histograms(
         )
 
         for var_col, var_name_nice, unit in [
-            ["invariant_mass", r"$M_{1,2}$", "[GeV]"],
-            ["delta_r", r"$\Delta R$", None],
+            ["invariant_mass", r"m(jj)", "[GeV]"],
+            ["delta_r", r"$\Delta R(jj)$", None],
         ]:
             if flavour_selection == "inclusive":
                 filename = f"leading_subleading_{var_col}_{flavour_selection}"

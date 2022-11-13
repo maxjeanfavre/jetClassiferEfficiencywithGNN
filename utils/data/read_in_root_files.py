@@ -67,10 +67,10 @@ def read_in_root_files_in_chunks(
                 f"Unsupported value for 'library': {library}. "
                 f"Supported values are: 'np' and 'pd'"
             )
-        chunk_res_list.append(chunk_res)
-        event_n_jets_chunk = reconstruct_event_n_jets_from_groupby_zeroth_level_values(
+        chunk_res_list.append(chunk_res) #list of mutli index dataframes
+        event_n_jets_chunk = reconstruct_event_n_jets_from_groupby_zeroth_level_values( 
             df=chunk_res
-        )
+        ) #list of #jets in each event 
         event_n_jets_list.append(event_n_jets_chunk)
     e = time.time()
     logger.trace(f"Reading in took {e - s:.2f} seconds")
@@ -78,7 +78,7 @@ def read_in_root_files_in_chunks(
     logger.trace("Generating result DataFrame")
     res = pd.concat(chunk_res_list, axis=0)
 
-    event_n_jets = np.concatenate(event_n_jets_list)
+    event_n_jets = np.concatenate(event_n_jets_list) #make one list of list of list
     idx = get_idx_from_event_n_jets(event_n_jets=event_n_jets)
     res.index = idx
     logger.trace("Done generating result DataFrame")
@@ -142,9 +142,11 @@ def read_in_root_files_via_np(
         allow_missing=False,
         num_workers=num_workers,
     )
+    #print("data ",data)
     n_events_per_branch = {
         branch_name: len(branch_values) for branch_name, branch_values in data.items()
     }
+    print("n_events_per_branch ",n_events_per_branch) #{'event': 24680, 'run': 24680, 'Jet_mass': 24680, 'Jet_nConstituents': 24680, 'Jet_phi': 24680, 'nJet': 24680, 'Jet_pt': 24680, 'Jet_hadronFlavour': 24680, 'Jet_btagDeepB': 24680, 'Jet_area': 24680, 'Jet_eta': 24680}
     if len(set(n_events_per_branch.values())) != 1:
         raise ValueError(
             f"Different number of events in the branches: {n_events_per_branch} "
@@ -156,6 +158,7 @@ def read_in_root_files_via_np(
         for k, v in data.items()
         if isinstance(v[0], np.ndarray)
     }
+    print("event_n_jets_from_jagged_branches :",event_n_jets_from_jagged_branches) #{'Jet_phi': array([ 6, 14,  8, ...,  4,  8,  5]), 'Jet_mass': array([ 6, 14,  8, ...,  4,  8,  5]),
     first_key, *other_keys = event_n_jets_from_jagged_branches
     if not all(
         np.array_equal(
@@ -190,18 +193,24 @@ def read_in_root_files_via_np(
         )
 
     event_n_jets = event_n_jets_from_jagged_branches[first_key]
+    print("event_n_jets ",event_n_jets) #[ 6 14  8 ...  4  8  5]
     res = pd.DataFrame()
     # for branch_name, branch_values in data.items():
     for branch_name in list(data.keys()):
         branch_values = data[branch_name]
         if isinstance(branch_values[0], np.ndarray):
             res[branch_name] = np.concatenate(branch_values)
+            print("branch_name ",branch_name) 
+            print("branch_values) ",branch_values) #array of array of jets
+            print("np.concatenate(branch_values) ",np.concatenate(branch_values)) #one array of all jets [31 42 17 ... 14 16  7]
         else:
-            res[branch_name] = np.repeat(branch_values, event_n_jets)
+            res[branch_name] = np.repeat(branch_values, event_n_jets) #repeat same value for #jets_per_event times
         del branch_values
         del data[branch_name]
 
+    print(res.head())
     idx = get_idx_from_event_n_jets(event_n_jets=event_n_jets)
     res.index = idx
+    print(res.head())
 
     return res

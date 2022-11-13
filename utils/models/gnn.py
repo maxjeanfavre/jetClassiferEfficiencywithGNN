@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from utils.paths_handler import Paths
 from utils.configs.working_point import WorkingPointConfig
 from utils.configs.working_points_set import WorkingPointsSetConfig
 from utils.data.jet_events_dataset import JetEventsDataset
@@ -95,6 +96,7 @@ class GNN(Model):
                 )
         else:
             n_classes = len(self.working_points_set_config) + 1
+            print("n_classes ")
             if old_mode_wp_idx is not None:
                 raise ValueError(
                     "'old_mode_wp_idx' can't be not None if 'old_mode' is not used"
@@ -120,7 +122,12 @@ class GNN(Model):
             flavour_indices_key=FLAVOUR_INDICES_KEY,
         )
 
-    def save(self, path) -> None:
+    def save(self, path, epoch: Optional[int]= None, ischeckpoint:bool=False) -> None:
+        if ischeckpoint:
+            checkpoint_file = "checkpoint_epoch" + str(epoch)
+            path = path / checkpoint_file
+            Paths.safe_return(path, path_type="directory", mkdir=True) 
+
         if isinstance(self.estimator, nn.DataParallel):
             torch.save(self.estimator.module.state_dict(), path / self.torch_filename)
         else:
@@ -194,6 +201,7 @@ class GNN(Model):
         train_split=0.8,
         validation_split=0.2,
         loss_func: Optional[torch.nn.modules.loss._Loss] = None,
+        trained_model_path:Optional[str] = None,
     ) -> None:
         if optimizer_cls_init_kwargs is None:
             optimizer_cls_init_kwargs = {}
@@ -252,6 +260,7 @@ class GNN(Model):
             jds=jds_train,
             working_points_set_config=self.working_points_set_config,
         )
+        #print("target_train : ",target_train[0:60])
         target_validation = get_tag_working_points(
             jds=jds_validation,
             working_points_set_config=self.working_points_set_config,
@@ -327,6 +336,12 @@ class GNN(Model):
             #     if not isinstance(self.estimator, nn.DataParallel):
             #         self.estimator = nn.DataParallel(self.estimator)
             logger.debug(f"Number of GPUs: {torch.cuda.device_count()}")
+        if trained_model_path:
+            self.estimator.load_state_dict(
+                torch.load(trained_model_path, map_location=device)
+            )
+
+        #model.estimator.to(device)
         self.estimator.to(device)
 
         dataloader_train = self.get_dataloader(
@@ -397,6 +412,7 @@ class GNN(Model):
             self.estimator.train()
 
             for x, _, target in tqdm(dataloader_train, file=sys.stdout):
+                #print("x going in tqdm ",x)  Graph(num_nodes=4696, num_edges=20138,                                                                                                                                                      ndata_schemes={'NODE_FEATURES': Scheme(shape=(3,), dtype=torch.float32), 'FLAVOUR_INDICES': Scheme(shape=(), dtype=torch.int64)}                                                                       edata_schemes={'dR': Scheme(shape=(), dtype=torch.float32)})
                 if use_gpu:
                     x = x.to(device)
                     target = target.to(device)
@@ -407,6 +423,8 @@ class GNN(Model):
                     loss = loss_func(output, target.reshape(-1, 1).float())
                 else:
                     loss = loss_func(output, target)
+                    print("output: ",output[:5])
+                    print("target: ",target[:5])
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -469,7 +487,9 @@ class GNN(Model):
                 f"epoch validation loss: {epoch_validation_loss}, "
                 f"learning rate: {learning_rate}"
             )
-
+            if (epoch%5==0):
+                self.save(path_to_save, epoch=epoch, ischeckpoint=True)
+                print("saving the checkpoint no: ",epoch) 
             # TODO(low): save model with the lowest epoch validation loss,
             #  won't make a big difference as the validation loss did not
             #  increase towards the end of the training
@@ -577,6 +597,7 @@ class GNN(Model):
                 raw_output_batch = self.estimator(x)
 
                 raw_outputs.append(raw_output_batch)
+        #print("first set of raw outpyts ",raw_outputs)        
 
         raw_outputs = torch.cat(raw_outputs, dim=0)
 
@@ -598,15 +619,24 @@ class GNN(Model):
                     output = output_activated.flatten()
                 else:
                     output_activation_func = torch.nn.Softmax(dim=1)
+                    #print("raw_outputs ",raw_outputs[:50])
                     output_activated = output_activation_func(raw_outputs)
+                    #print("output_activated ",output_activated[:50])
 
                     working_point_set_idx = (
                         self.working_points_set_config.working_points.index(
                             working_point_config
                         )
                     )
+                    #print("working_point_config ",working_point_config)
+                    #print("working_point_set_idx ",working_point_set_idx)
                     wp_sum_idx = working_point_set_idx + 1
                     output = output_activated[:, wp_sum_idx:].sum(dim=1)
+                    #print("output_activated[:, wp_sum_idx:] ",output_activated[:50, wp_sum_idx:])
+                    #print("output_activated[:, wp_sum_idx:].sum(dim=1) ",output_activated[:50, wp_sum_idx:].sum(dim=1))
+                    #print("output ",output[:50])
+                    #print("wp_sum_idx was ",wp_sum_idx)
+                    #print("****************************************************")
                     assert output.dim() == 1
                     assert output.shape[0] == jds_preprocessed.n_jets
 
@@ -815,14 +845,27 @@ class TorchDataset(Dataset):
         g.ndata[NODE_FEATURES_KEY] = node_features
         g.ndata[FLAVOUR_INDICES_KEY] = flavour_indices
         g.edata[EDGE_FEATURE_KEY] = delta_r
+        #print("src ",src)
+        #print("dst ",dst)
+        #print("g ",g)
+        #print("target ",target)
+        #print("flavour ",flavour)
+        #print("g.ndata[NODE_FEATURES_KEY] ",g.ndata[NODE_FEATURES_KEY])
+        #print("g.ndata[NODE_FEATURES_KEY].shape ",g.ndata[NODE_FEATURES_KEY].shape)
+        #print("g.edata[EDGE_FEATURE_KEY] ",g.edata[EDGE_FEATURE_KEY])
 
+        #src  [0 0 0 1 1 1 2 2 2 3 3 3]                                                                                                                                                                         dst  [1 2 3 0 2 3 0 1 3 0 1 2]                                                                                                                                                                         g  Graph(num_nodes=4, num_edges=12,                                                                                                                                                                          ndata_schemes={'NODE_FEATURES': Scheme(shape=(3,), dtype=torch.float32), 'FLAVOUR_INDICES': Scheme(shape=(), dtype=torch.int64)}                                                                       edata_schemes={'dR': Scheme(shape=(), dtype=torch.float32)})                                                                                                                                     target  tensor([3., 0., 0., 2.])                                                                                                                                                                       flavour  tensor([5., 0., 0., 5.])   
+        #src  [0 1]                                                                                                                                                                                             dst  [1 0]                                                                                                                                                                                             g  Graph(num_nodes=2, num_edges=2,                                                                                                                                                                           ndata_schemes={'NODE_FEATURES': Scheme(shape=(3,), dtype=torch.float32), 'FLAVOUR_INDICES': Scheme(shape=(), dtype=torch.int64)}                                                                       edata_schemes={'dR': Scheme(shape=(), dtype=torch.float32)})                                                                                                                                     g.ndata[NODE_FEATURES_KEY]  tensor([[ 1.1988, -0.9034, -1.4863],                                                                                                                                               [ 0.7420, -0.6154,  0.1990]])                                                                                                                                                                  g.ndata[NODE_FEATURES_KEY].shape  torch.Size([2, 3])                                                                                                                                                   g.edata[EDGE_FEATURE_KEY]  tensor([3.0938, 3.0938])  
         return g, flavour, target
 
 
 def collate(samples):
+    #print("samples.shape is ",samples)
     graphs = [x[0] for x in samples]
     flavours = [x[1] for x in samples]
     targets = [x[2] for x in samples]
+    #print("graph in collate ",graphs) #Graph(num_nodes=3, num_edges=6,                                                                                                          ndata_schemes={'NODE_FEATURES': Scheme(shape=(3,), dtype=torch.float32), 'FLAVOUR_INDICES': Scheme(shape=(), dtype=torch.int64)}                                                                       edata_schemes={'dR': Scheme(shape=(), dtype=torch.float32)}), Graph(num_nodes=2, num_edges=2,
+    #print("flavors in collate ",flavours) #flavors in collate  [tensor([0., 5.]), tensor([0., 5., 5., 0., 0.]), tensor([5., 0., 0., 0., 5., 0., 0., 0., 0.]),..
 
     batched_graph = dgl.batch(
         graphs=graphs,
@@ -834,7 +877,9 @@ def collate(samples):
 
     flavours = flavours.unsqueeze(1).float()
     targets = targets.long()
-
+    #print("batched graph",batched_graph)
+    #print("flavours afetr collate ",flavours)
+    #batched graph Graph(num_nodes=4696, num_edges=20138,                                                                                                                                                         ndata_schemes={'NODE_FEATURES': Scheme(shape=(3,), dtype=torch.float32), 'FLAVOUR_INDICES': Scheme(shape=(), dtype=torch.int64)}                                                                       edata_schemes={'dR': Scheme(shape=(), dtype=torch.float32)})                                                                                                                                     flavours afetr collate  tensor([[0.],                                                                                                                                                                          [5.],                                                                                                                                                                                                  [0.],                                                                                                                                                                                                  ...,                                                                                                                                                                                                   [0.],                                                                                                                                                                                                  [0.],                                                                                                                                                                                                  [0.]])  
     return batched_graph, flavours, targets
 
 
@@ -888,7 +933,7 @@ class EdgeNetwork(nn.Module):
             )
             / 2
         )
-
+        #print("out_features  for edge network is ",out_features)
         self.net = nn.Sequential(
             nn.Linear(
                 in_features=in_features,
@@ -906,6 +951,9 @@ class EdgeNetwork(nn.Module):
         )
 
     def forward(self, x):
+        #print("x is ",x)
+        #print(type(x))
+        #print("forward pass of edge update called ")
         if self.first_layer is True:
             input_data_list = [
                 x.dst[self.node_features_key],
@@ -918,6 +966,11 @@ class EdgeNetwork(nn.Module):
                 x.src[self.node_features_key],
                 x.src[self.node_hidden_state_key],
             ]
+        #print("x.src[self.node_features_key] ",x.src[self.node_features_key][0:50])
+        #print("x.src[self.node_features_key].shape ",x.src[self.node_features_key].shape)
+        #print("x.data[self.edge_feature_key] ",x.data[self.edge_feature_key][0:50])
+        #print("x.data[self.edge_feature_key].shape ",x.data[self.edge_feature_key].shape)
+        #print("************************")
 
         assert x.data[self.edge_feature_key].dim() == 1
         input_data_list.append(x.data[self.edge_feature_key].unsqueeze(dim=1))
@@ -931,6 +984,7 @@ class EdgeNetwork(nn.Module):
         result = self.net(input_data)
 
         output = {self.edge_hidden_state_key: result}
+        #print("output self.edge_hidden_state_key: output of edge node nn",output[self.edge_hidden_state_key].shape)
 
         return output
 
@@ -1018,6 +1072,8 @@ class NodeNetwork(nn.Module):
         )
 
     def forward(self, x):
+        #print("x in forward pass is ",x)
+        #print("forward pass of node update called")
         if self.first_layer is True:
             input_data_1 = x.data[self.node_features_key]
         else:
@@ -1029,13 +1085,21 @@ class NodeNetwork(nn.Module):
         result_1 = self.net_1(input_data_1)
 
         # message sum of incoming edges
+        #print("x.mailbox[self.edge_hidden_state_key].shape nefore sum ",x.mailbox[self.edge_hidden_state_key].shape)
+        #print("x.mailbox[self.edge_hidden_state_key] ",x.mailbox[self.edge_hidden_state_key])
         input_data_2 = torch.sum(x.mailbox[self.edge_hidden_state_key], dim=1)
+        #print("x.mailbox[self.edge_hidden_state_key].shape after sum ",input_data_2.shape)
+        #print("input_data_2 ",input_data_2)
 
         result_2 = self.net_2(input_data_2)
-
+        #print("result_2 ",result_2.shape) #torch.Size([20, 256])
+        #print("result_1 ",result_1.shape) #torch.Size([20, 256])
         result = torch.cat([result_1, result_2], dim=1)
+        #print("result ",result[0]) #torch.Size([20, 512])
         result = result / torch.norm(result, p="fro", dim=1, keepdim=True)
-
+        #print("result ",result[0])
+        #>>> result                                                                                                                                                                                             tensor([[1, 2],                                                                                                                                                                                                [3, 4]])                                                                                                                                                                                       >>> torch.norm(result.float(), p="fro", dim=1, keepdim=True)                                                                                                                                           tensor([[2.2361],                                                                                                                                                                                              [5.0000]]) 
+        #happens sqrt(across row)
         output = {self.node_hidden_state_key: result}
 
         return output
@@ -1133,7 +1197,7 @@ class GNNTorchModel(nn.Module):
                 first_layer = True
             else:
                 first_layer = False
-
+             
             edge_network = EdgeNetwork(
                 input_node_features_size=self.total_node_features,
                 input_node_hidden_state_size=gn_block_input_node_hidden_state_size,
@@ -1199,7 +1263,10 @@ class GNNTorchModel(nn.Module):
     def forward(self, g):
         if self.flavour_embedding is not None:
             # pass flavour indices through embedding and append it to the node features
-            embedded_flavour = self.flavour_embedding(g.ndata[self.flavour_indices_key])
+            #print("g.ndata[self.flavour_indices_key].shape ",g.ndata[self.flavour_indices_key].shape)  #torch.Size([4635])
+            #print("g.ndata[self.node_features_key].shape ",g.ndata[self.node_features_key].shape) #torch.Size([4635, 3])
+            
+            embedded_flavour = self.flavour_embedding(g.ndata[self.flavour_indices_key]) 
             g.ndata[self.node_features_key] = torch.cat(
                 [
                     g.ndata[self.node_features_key],
@@ -1207,12 +1274,16 @@ class GNNTorchModel(nn.Module):
                 ],
                 dim=1,
             )
+            #print("g.ndata[self.node_features_key].shape after torch.cat",g.ndata[self.node_features_key].shape)  #torch.Size([4635, 5])
 
         for edge_update, node_update in zip(self.edge_updates, self.node_updates):
             g.update_all(
                 message_func=edge_update,
                 reduce_func=node_update,
             )
+            #print("calling update all")
+#        print("g.ndata[self.node_hidden_state_key] before jet layers ",g.ndata[self.node_hidden_state_key])
+        print("g.ndata[self.node_hidden_state_key].shape",g.ndata[self.node_hidden_state_key].shape) #torch.Size([2329, 512]) 
 
         jet_efficiency_net_input = torch.cat(
             [

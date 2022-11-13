@@ -8,9 +8,9 @@ filenames = Filenames()
 settings = Settings()
 
 flavours_niceify = {
-    0: "light-flavour",
-    4: "charm",
-    5: "bottom",
+    0: "l-jets",
+    4: "c-jets",
+    5: "b-jets",
 }
 
 # TODO(high): use config.display_name
@@ -22,10 +22,10 @@ datasets_niceify = {
 }
 
 branches_niceify = {
-    "Jet_Pt": r"$p_\mathrm{T}$",
+    "Jet_Pt": r"$p_\mathrm{T}$ (GeV)",
     "Jet_eta": r"$\eta$",
     "Jet_phi": r"$\phi$",
-    "Jet_mass": r"Jet mass",
+    "Jet_mass": r"Jet mass (GeV)",
     "Jet_area": r"Jet area",
     "Jet_nConstituents": r"Jet constituents",
     "Jet_hadronFlavour": "Flavour",

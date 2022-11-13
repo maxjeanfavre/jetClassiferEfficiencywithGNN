@@ -173,9 +173,13 @@ class BinnedEfficiencyMaps:
 
         for working_point_config in working_points_set_config.working_points:
             working_point_histograms = {}
+            print("working_point_config start: ",working_point_config)
             for separator_values, group_df in jds.df.groupby(
                 by=list(separation_cols), sort=False
             ):
+                print("list(separation_cols) :",list(separation_cols))
+                print("separator_values ",separator_values)
+                print("group_df: \n",group_df)
                 hist_all = Histogram.from_df_and_bins(
                     df=group_df,
                     bins=bins,
@@ -234,14 +238,19 @@ class BinnedEfficiencyMaps:
         eff_var = pd.Series(index=jds.df.index, dtype="float64")
         for separator_values, group_df in jds.df.groupby(
             by=list(self.separation_cols), sort=False
-        ):
+        ): 
+            print("separator_values: ",separator_values)
             hist_eff = self.histograms[working_point_name][separator_values]["eff_mode"]
+            print("hist_eff ",hist_eff)
             eff_res = hist_eff.get_bin_entry(df=group_df)
+            print("eff_res.shape ",eff_res.shape)
+            print("eff :",eff)
 
             eff.loc[
                 group_df.index  # TODO(low): maybe slow because of the index, also below
             ] = eff_res
-
+            print("eff now is ",eff)
+            print("eff_variance now ")
             hist_eff_var = self.histograms[working_point_name][separator_values][
                 "eff_variance"
             ]

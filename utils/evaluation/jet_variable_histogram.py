@@ -32,7 +32,7 @@ def create_jet_variable_histogram(
         "inclusive",
         # 0,
         # 4,
-        5,
+        #5,
     ]:
         if flavour == "inclusive":
             df = jds.df
@@ -64,6 +64,7 @@ def create_jet_variable_histogram(
             bins=bins,
             comparison_name=comparison_col,
             plot_info_string=plot_info_string,
+            var_col=var_col,
         )
 
         save_figure(

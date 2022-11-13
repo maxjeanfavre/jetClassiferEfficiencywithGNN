@@ -15,6 +15,8 @@ def check_dataset_config_filenames(dataset: str):
         config_type="dataset", config_name=dataset
     )
 
+    print("dataset_config ",type(dataset_config))
+
     path = dataset_config.path
 
     eos_prefix = "root://eoscms.cern.ch/"
@@ -46,14 +48,14 @@ def check_dataset_config_filenames(dataset: str):
             if i.is_file() and re.search(dataset_config.filename_pattern, i.name)
         ]
 
-        sorted_filenames = natsort.natsorted(filenames)
+        sorted_filenames = natsort.natsorted(filenames) #sort by numbers in filename
 
         logger.debug(
             f"Found {len(sorted_filenames)} files for dataset {dataset_config.name} "
             f"at {path}"
         )
 
-        if sorted_filenames != list(dataset_config.filenames):
+        if sorted_filenames != list(dataset_config.filenames):  #you need to update the list "filenames" in the module of the dataset when you add/sub any tree.
             logger.error("Existing filename list is different than the one just found")
             print(sorted_filenames)
         else:

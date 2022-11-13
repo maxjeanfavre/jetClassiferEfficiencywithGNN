@@ -113,12 +113,19 @@ class Histogram:
 
     @classmethod
     def from_df_and_bins(cls, df: pd.DataFrame, bins) -> Histogram:
+        print("bins.keys() ",bins.keys())
+        print("df[bins.keys()]",df[bins.keys()].to_numpy())
+        print("bins ",bins)
         data = df[bins.keys()].to_numpy()
+
         h, edges = np.histogramdd(
             sample=data,
             bins=list(bins.values()),
         )
-
+        print("h.shape is ",h.shape,"\n","edges are ",edges)
+        print("data shape is:", data.shape)
+        print("h[:5] ",h[:5])
+        #edges: [array([ -inf,    0.,   10.,   30.,   50.,   70.,  100.,  150.,  200.,                                                                                                                                                                   250.,  300.,  350.,  400.,  600., 1000.,   inf]), array([-inf, -2.8, -2.5, -2. , -1.5, -1. , -0.5,  0. ,  0.5,  1. ,  1.5,                                                                                                                   2. ,  2.5,  2.8,  inf])] 
         hist = cls(h=h, edges=tuple(edges), variables=tuple(bins.keys()))
 
         return hist
@@ -129,12 +136,16 @@ class Histogram:
                 x, self.edges[self.variables.index(x.name)], right=False
             )
         )  # these are the indices of the right edge of the bin the values fall into
+        print("bin_indices ",bin_indices)
         bin_indices -= 1  # now they are the bin indices
         bin_indices = bin_indices.to_numpy()
         bin_indices = bin_indices.T
         bin_indices = tuple(bin_indices)
+        print("tupled bin indices are: ",bin_indices)
+        print("self.h :",self.h,"\n",self.h.shape)
 
         res = self.h[bin_indices]
+        print("res ",res)
 
         # sanity check
         bin_indices_2 = []
@@ -180,18 +191,26 @@ class Histogram:
         # variables = tuple(self.variables[i] for i in idx_projection_variables)
 
         # new version
+        print("self.variables ",self.variables)
+        print("projection_variables ",projection_variables)
         idx_projection_variables = [
             self.variables.index(i) for i in projection_variables
         ]
+      
         idx_all_variables = tuple(range(0, len(self.variables)))
+        print("idx_projection_variables ",idx_projection_variables)
         idx_variables_to_sum = tuple(
             sorted(set(idx_all_variables) - set(idx_projection_variables))
         )
+        print("idx_variables_to_sum ",idx_variables_to_sum)
+        print("sorted(idx_projection_variables) ",sorted(idx_projection_variables))
         # this makes sure the match between variables, edges, and h is kept
         h_axes_moved = np.moveaxis(
             self.h, idx_projection_variables, sorted(idx_projection_variables)
         )
+        print("h_axes_moved ",h_axes_moved)
         h = np.nansum(h_axes_moved, axis=idx_variables_to_sum)
+        print("np.nansum(h_axes_moved, axis=idx_variables_to_sum) ",h)
         edges = tuple(self.edges[i] for i in idx_projection_variables)
         variables = tuple(self.variables[i] for i in idx_projection_variables)
 
@@ -203,6 +222,8 @@ class Histogram:
         return projected_hist
 
     def without_under_over_flow(self) -> Histogram:
+        print("self.edges begore under over flow removal",self.edges)
+        
         new_h = self.h[
             np.ix_(*[np.where(~np.isinf(np.diff(edges)))[0] for edges in self.edges])
         ]
@@ -213,6 +234,7 @@ class Histogram:
             edges=new_edges,
             variables=self.variables,
         )
+        print("self.edges after under over flow removal",new_edges)
 
         return hist_without_under_over_flow
 

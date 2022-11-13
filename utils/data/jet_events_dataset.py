@@ -124,6 +124,7 @@ class JetEventsDataset:
             did_run = False
             for data_manipulator in data_manipulators:
                 if mode in data_manipulator.active_modes:
+                    print("running this manipulator: ",data_manipulator)
                     data_manipulator.manipulate_inplace(jds=self)
                     did_run = True
 
@@ -197,17 +198,20 @@ class JetEventsDataset:
                 random_state=random_state,
                 shuffle=True,
             )
+            print("self.df.index.get_level_values(level=0).unique() ",self.df.index.get_level_values(level=0).unique()) #[0.1,2,...]
             if return_train:
                 logger.trace("Getting event_boolean_mask")
                 idx_train = idx_train.to_numpy()
                 idx_train = np.sort(idx_train)
+                print("self.n_events ",self.n_events)
+                print("idx_train ",idx_train)
                 event_boolean_mask_train = (
                     IndexConverter.get_event_boolean_mask_from_event_index(
                         event_index=idx_train,
                         n_events=self.n_events,
                     )
                 )
-
+                
                 logger.trace("Getting jet_boolean_mask")
                 jet_boolean_mask_train = (
                     IndexConverter.get_jet_boolean_mask_from_event_boolean_mask(
@@ -226,6 +230,9 @@ class JetEventsDataset:
                 # in the past idx_train wasn't sorted and therefore could not be used
                 # to get event_n_jets_train because the order of events wouldn't match
                 event_n_jets_train = self.event_n_jets[event_boolean_mask_train]
+                print("event_n_jets_train: ",event_n_jets_train) #[6 8 6 ... 7 8 7]
+                print("self.event_n_jets: ",self.event_n_jets) #[ 6 14  8 ...  8  7  4] 
+                print("event_boolean_mask_train: ",event_boolean_mask_train)  #[ True False  True ...  True  True False]
 
                 logger.trace("Getting new index")
                 train_new_idx = get_idx_from_event_n_jets(
@@ -236,6 +243,7 @@ class JetEventsDataset:
                 train_df.index = train_new_idx
 
                 logger.trace("Creating inst")
+                print("train_df: ",train_df)
                 inst_train = JetEventsDataset(df=train_df)
 
             if return_test:
@@ -297,12 +305,14 @@ class JetEventsDataset:
             raise ValueError("sample_size has to be strictly larger than 0")
 
         logger.trace("Generating index of bootstrap_selection")
+        print("len(self.df.index.get_level_values(level=0)) ",self.df.index.get_level_values(level=0)[:50]," and len is ",len(self.df.index.get_level_values(level=0)))
+        print("sample_size ",sample_size) #number of training evebts which is same as self.n_events
         bootstrap_selection = sklearn.utils.resample(
             self.df.index.get_level_values(level=0).unique(),
             replace=True,
             n_samples=sample_size,
         )
-
+        print(len(bootstrap_selection), "bootstrap_selection ",bootstrap_selection[:50])
         logger.trace(
             "Bootstrap fraction of selected events: "
             f"{len(set(bootstrap_selection))} / {self.n_events} "

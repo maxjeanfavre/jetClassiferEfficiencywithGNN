@@ -145,7 +145,11 @@ def evaluation_handler(
                     "No model runs found for model_config "
                     f"{evaluation_model_config.model_config.name}"
                 )
-                continue
+                #continue
+                raise ValueError(
+                    "No model runs found for model_config "
+                    f"{evaluation_model_config.model_config.name}"
+                )    
 
             if evaluation_model_config.run_aggregation == "individual":
                 for i, model_run_id in enumerate(model_run_ids):
@@ -184,6 +188,8 @@ def evaluation_handler(
 
                     jds_test.df[pred_col] = mp.res
                     jds_test.df[err_col] = mp.err
+                    print("jds_test.df[pred_col] ",jds_test.df[pred_col])
+                    print("jds_test.df[err_col] ",jds_test.df[err_col])
 
                     eff_pred_cols.append(pred_col)
                     eff_err_cols.append(err_col)
@@ -256,6 +262,8 @@ def evaluation_handler(
 
                     jds_test.df[pred_col] = run_preds_df.median(axis=1)
                     jds_test.df[err_col] = run_preds_df.std(axis=1)
+                    print("jds_test.df[err_col] ",jds_test.df[err_col])
+                    print("run_preds_df ",run_preds_df)
                     plot_info_strings.append(
                         f"{base_name}: "
                         "median, "
@@ -342,7 +350,7 @@ def evaluation_handler(
             # evaluation part
 
             evaluation_data_collection = {}
-
+            
             if comparison_pred_col is not None:
                 evaluation_data = compute_predictions_loss(
                     jds=jds_test_with_predictions,
@@ -354,21 +362,22 @@ def evaluation_handler(
 
             # for model_config in model_configs:
             #     model_prediction_variance(jds=jds_test, model_config=model_config)
-
+            '''
             create_predictions_histogram(
                 jds=jds_test_with_predictions,
                 eff_pred_cols=eff_pred_cols,
                 evaluation_dir_path=evaluation_dir_path,
             )
-
+            ''' 
             evaluation_data_collection["jet_variable_histograms"] = {}
+            
             for var_col, var_name_nice, unit in [
                 # not using \text{} as this caused errors
                 ["Jet_Pt", r"$p_\mathrm{T}$", "[GeV]"],
                 ["Jet_eta", r"$\eta$", None],
-                ["Jet_phi", r"$\phi$", None],
-                ["Jet_mass", r"Jet mass", "[GeV]"],
-                ["Jet_area", r"Jet area", None],
+                #["Jet_phi", r"$\phi$", None],
+                #["Jet_mass", r"Jet mass", "[GeV]"],
+                #["Jet_area", r"Jet area", None],
             ]:
                 evaluation_data = create_jet_variable_histogram(
                     jds=jds_test_with_predictions,
@@ -387,7 +396,7 @@ def evaluation_handler(
                 evaluation_data_collection["jet_variable_histograms"].update(
                     evaluation_data
                 )
-
+            
             evaluation_data = create_leading_subleading_histograms(
                 jds=jds_test_with_predictions,
                 eff_pred_cols=eff_pred_cols,
@@ -395,13 +404,14 @@ def evaluation_handler(
                 comparison_col=comparison_pred_col,
                 plot_info_string=plot_info_string,
             )
+            
             assert set(evaluation_data.keys()).isdisjoint(
                 set(evaluation_data_collection.keys())
             )
             evaluation_data_collection[
                 "leading_subleading_histograms"
             ] = evaluation_data
-
+            
             print(json.dumps(evaluation_data_collection, indent=4))
 
             with open(evaluation_dir_path / "evaluation_data.json", "w") as f:

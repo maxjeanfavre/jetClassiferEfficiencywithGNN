@@ -26,6 +26,7 @@ def train_handler(
     model_config: ModelConfig,
     bootstrap: bool,
     run_id: Optional[str] = None,
+    trained_model_path: Optional[str]=None,
 ) -> Model:
     if run_id is not None:
         if bootstrap:
@@ -45,12 +46,13 @@ def train_handler(
         run_id=run_id_handler.get_str(),
         mkdir=True,
     )
-
+    print("model_dir_path :",model_dir_path) #/work/krgedia/CMSSW_10_1_0/src/Xbb/python/gnn_b_tagging_efficiency/data/QCD_Pt_300_470_MuEnrichedPt5/pt_30_1000_eta_25_cut_dataset_handling/standard_working_points_set/models/direct_tagging/in_progress_20220902_101752_261253__df8f9054-18f1-452d-8b9c-bb7a2e2430f8
     set_up_logging_sinks(
         dir_path=model_dir_path,
         base_filename=utils.filenames.train_log,
     )
 
+     
     logger.info("Starting 'train_handler'")
 
     log_environment()
@@ -63,7 +65,7 @@ def train_handler(
         working_points_set_config=working_points_set_config,
         **model_config.model_init_kwargs,
     )
-
+    print("**model_config.model_init_kwargs ", model_config.model_init_kwargs)
     branches_to_read_in = tuple(
         (
             {"run", "event", "nJet"}  # always include these
@@ -81,6 +83,12 @@ def train_handler(
             )
         )
     )
+
+    print(set(dataset_handling_config.get_required_columns()))
+    print(set(working_points_set_config.get_required_columns()))
+    print(set(model_config.get_required_columns()))
+    print(set(model.get_required_columns()))
+    print(set(                                                                                                                                                                                                     added_columns_multiple_data_manipulators(                                                                                                                                                                  data_manipulators=(                                                                                                                                                                                        *dataset_handling_config.data_manipulators,                                                                                                                                                            *model_config.data_manipulators,                                                                                                                                                                   )                                                                                                                                                                                                  )))
 
     jds = JetEventsDataset.read_in(
         dataset_config=dataset_config,
@@ -126,6 +134,7 @@ def train_handler(
         jds=jds_train,
         path_to_save=model_dir_path,
         **model_config.model_train_kwargs,
+        trained_model_path = trained_model_path
     )
 
     del jds_train

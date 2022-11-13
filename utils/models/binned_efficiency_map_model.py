@@ -66,6 +66,7 @@ class BinnedEfficiencyMapModel(Model):
         self.bem: BinnedEfficiencyMaps
 
         for working_point_config in working_point_configs:
+            print("compute efficiency of working_point_config.name :",working_point_config.name)
             results, err = self.bem.compute_efficiency(
                 jds=jds, working_point_name=working_point_config.name
             )

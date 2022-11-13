@@ -1,6 +1,7 @@
 import pathlib
 from typing import Optional
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -40,15 +41,26 @@ def create_deepcsv_discriminator_histogram(
         label_data.append(utils.flavours_niceify[flavour])
         colour_data.append(utils.settings.quark_flavour_colours[flavour])
 
+    matplotlib.rcParams['font.sans-serif'] = 'Arial'    
     fig, ax = plt.subplots()
-    fig.suptitle(
-        (
-            "Histogram of the DeepCSV discriminator in the "
-            f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
-            " dataset."
-        ),
-        wrap=True,
+    ax.text(0.00, 1.01, 'CMS Simulation Preliminary',transform=ax.transAxes)
+    caption = (
+        f"Histogram of the DeepCSV discriminator in the "
+        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+        " dataset."
     )
+    txt = ax.text(0.00,-0.18,caption,va="top",transform=ax.transAxes,wrap=True)
+    fig_xsize, fig_ysize = fig.get_size_inches()*fig.dpi
+    #below works if tight layout is switched off
+    txt._get_wrap_line_width = lambda : fig_xsize
+    #fig.suptitle(
+    #    (
+    #        "Histogram of the DeepCSV discriminator in the "
+    #        f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+    #        " dataset."
+    #    ),
+    #    wrap=True,
+    #)
 
     ax.hist(
         x=var_data,
@@ -65,7 +77,7 @@ def create_deepcsv_discriminator_histogram(
     ax.set_xlabel("DeepCSV discriminator")
     ax.set_ylabel("Jets")
 
-    ax.legend()
+    ax.legend(frameon=False)
 
     fig.tight_layout()
 

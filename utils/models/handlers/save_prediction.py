@@ -30,6 +30,7 @@ def save_predictions_handler(
         run_id=run_id,
         mkdir=False,
     )
+    print("will load the model from this model_dir_path: ",model_dir_path)
 
     set_up_logging_sinks(
         dir_path=model_dir_path,

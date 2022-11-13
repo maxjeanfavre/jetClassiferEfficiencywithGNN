@@ -2,6 +2,7 @@ import pathlib
 from typing import Optional
 
 import matplotlib.pyplot as plt
+import matplotlib
 
 import utils
 from utils.configs.dataset import DatasetConfig
@@ -20,15 +21,15 @@ def create_jet_variable_histograms(
         ["Jet_Pt", [0, 0.999]],
         ["Jet_eta", [0, 1]],
         ["Jet_phi", [0, 1]],
-        ["Jet_nConstituents", [0, 1]],
-        ["Jet_nConstituents", [0, 0.999]],
-        ["Jet_nConstituents", [0, 0.99]],
-        ["Jet_mass", [0, 1]],
-        ["Jet_mass", [0, 0.999]],
-        ["Jet_mass", [0, 0.99]],
-        ["Jet_area", [0, 1]],
-        ["Jet_area", [0.001, 0.999]],
-        ["Jet_area", [0.01, 0.99]],
+       # ["Jet_nConstituents", [0, 1]],
+       # ["Jet_nConstituents", [0, 0.999]],
+       # ["Jet_nConstituents", [0, 0.99]],
+       # ["Jet_mass", [0, 1]],
+       # ["Jet_mass", [0, 0.999]],
+       # ["Jet_mass", [0, 0.99]],
+       # ["Jet_area", [0, 1]],
+       # ["Jet_area", [0.001, 0.999]],
+       # ["Jet_area", [0.01, 0.99]],
     ]
 
     if jds is None:
@@ -52,10 +53,12 @@ def create_jet_variable_histograms(
             )
             label_data.append(utils.flavours_niceify[flavour])
             colour_data.append(utils.settings.quark_flavour_colours[flavour])
+
+        matplotlib.rcParams['font.sans-serif'] = 'Arial'    
         fig, ax = plt.subplots()
         ax.hist(
             x=var_data,
-            bins=30,
+            bins=100000,
             range=tuple(jds.df[var].quantile(q=quantiles)),
             density=True,
             label=label_data,
@@ -63,15 +66,28 @@ def create_jet_variable_histograms(
             color=colour_data,
         )
 
-        ax.set_xlabel(utils.branches_niceify.get(var, var))
+        ax.set_xlabel(utils.branches_niceify.get(var))
+        #ax.set_ylabel("# jets")
+        ax.text(0.00, 1.01, 'CMS Simulation Preliminary',transform=ax.transAxes)
 
-        ax.legend()
+
+        ax.legend(frameon=False)
 
         title = (
-            f"Normalised histogram of {utils.branches_niceify.get(var, var)} in the "
+            f"Normalised histogram of {utils.branches_niceify.get(var, var).replace(' (GeV)','')} in the "
             f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
             " dataset."
         )
+        caption = (
+            f"Normalised histogram of {utils.branches_niceify.get(var, var).replace(' (GeV)','')} in the "
+            f"{utils.datasets_niceify.get(dataset_config.name, dataset_config.name)}"
+            " dataset."
+        )
+        txt = ax.text(0.00,-0.2,caption,va="top",transform=ax.transAxes,wrap=True)
+        fig_xsize, fig_ysize = fig.get_size_inches()*fig.dpi
+        #below works if tight layout is switched off
+        txt._get_wrap_line_width = lambda : fig_xsize
+
         if quantiles[0] != 0 or quantiles[1] != 1:
             if quantiles[0] != 0:
                 below_text = f"below the {quantiles[0]:.2%} quantile"
@@ -91,7 +107,8 @@ def create_jet_variable_histograms(
             outlier_text += " were removed."
             title += outlier_text
         title += "\n"
-        fig.suptitle(title, wrap=True)
+        #fig.suptitle(title, wrap=True)
+       
         fig.tight_layout()
 
         save_figure(

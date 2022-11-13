@@ -1,5 +1,5 @@
 from typing import Dict, Optional, Tuple, Union
-
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
@@ -26,6 +26,7 @@ def plot_evaluation_histogram(
     bins: Union[int, np.ndarray] = 20,
     comparison_name: Optional[str] = None,
     plot_info_string: Optional[str] = None,
+    var_col: Optional[str] = None,
 ) -> Tuple[plt.Figure, Dict]:
     if not isinstance(data, np.ndarray):
         raise ValueError(f"'data' has to be np.ndarray. Got type: {type(data)}")
@@ -56,17 +57,32 @@ def plot_evaluation_histogram(
     if comparison_name is not None:
         if comparison_name not in weights:
             raise ValueError("'comparison_name' must be a key in 'weights'")
+    q_start = {'Jet_Pt':0.0}
+    q_end   = {'Jet_Pt':0.99}
 
     if isinstance(bins, int):
+        q_s = 0.01
+        q_e= 0.99
+        if var_col in q_start.keys():
+            print("var_colllllllllllllllllllllll ",var_col,q_s,q_e)      
+            q_s = q_start[var_col]
+            q_e = q_end[var_col]
+            print(np.quantile(a=data, q=q_s))
+            print(np.quantile(a=data, q=0.01))
+            print("lower ",np.quantile(a=data, q=q_s))
+            print("upper ",np.quantile(a=data, q=q_e))
+        lower = np.quantile(a=data, q=q_s)
+        upper = np.quantile(a=data, q=q_e)
         bin_edges = get_bin_edges_equidistant(
-            lower=np.quantile(a=data, q=0.01),
-            upper=np.quantile(a=data, q=0.99),
+            lower=np.quantile(a=data, q=q_s),
+            upper=np.quantile(a=data, q=q_e),
             n_bins=bins,
             # underflow=True,
             underflow=False,
             # overflow=True,
             overflow=False,
         )
+        print("bin_edges ",bin_edges)
     elif isinstance(bins, np.ndarray):
         bin_edges = bins
     else:
@@ -75,14 +91,23 @@ def plot_evaluation_histogram(
     bin_widths = get_bin_widths_from_bin_edges(bin_edges=bin_edges)
 
     bin_midpoints = get_bin_midpoints_from_bin_edges(bin_edges=bin_edges)
+    print("bin_midpoints ",bin_midpoints)
 
     bin_indices = compute_bin_indices(
         x=data,
         bin_edges=bin_edges,
     )
+    #bin indices means every jet has a bin number associated.
+    #matplotlib.rcParams['font.sans-serif'] = 'Arial'   
+    #print(matplotlib.rcParams)
+    matplotlib.rcParams['font.family'] = 'Helvetica'
+    matplotlib.rcParams['font.sans-serif'] = 'Helvetica'
+    matplotlib.rc('font', serif='Helvetica')
 
+    #print("sett",matplotlib.rcParams)
     figsize = (9.5, 9.5)
-
+    #figsize = (14., 9.5)
+    
     if comparison_name is not None:
         fig, axes = plt.subplots(
             nrows=3,
@@ -104,7 +129,7 @@ def plot_evaluation_histogram(
         )
         axes = [ax]
 
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=20.0)
 
     hist_data = {}
 
@@ -121,6 +146,10 @@ def plot_evaluation_histogram(
 
     used_colors = {}
 
+    #print("weights are ",weights)
+    #weights['GNN with GATv2'] = weights.pop('GNN with GATv2')
+    weights['GNN'] = weights.pop('GNN')
+    #print("new weights are ",weights)
     for name, weight in weights.items():
         (
             bin_counts,
@@ -153,7 +182,12 @@ def plot_evaluation_histogram(
                 label = None
         else:
             label = name
-
+        if label is not None and "gnn_lr0p0002_with_attentionv2_drop0p1_nhead8_epoch40" in label:
+            label = label.replace("gnn_lr0p0002_with_attentionv2_drop0p1_nhead8_epoch40","GNN with GATv2 bootstrap")
+        linewidth = 1    
+        if name=="GNN with GATv2" or name=="GNN":
+            linewidth=2.5
+            color='black'
         axes[0].errorbar(
             x=bin_midpoints,
             y=bin_counts,
@@ -163,15 +197,32 @@ def plot_evaluation_histogram(
             ls="None",
             label=label,
             ecolor=color,
+            elinewidth=linewidth,
         )
+        print("label is ",label)
+        print("bin midpoints ",bin_midpoints)
+        print("bin_counts ",bin_counts)
+        print("var_col ",var_col)
 
-    axes[0].legend()
-    axes[0].set_ylabel(ylabel=ylabel)
+    
+    #axes[0].legend()
+    #axes[0].text(0.00, 1.01, 'CMS Simulation Preliminary',transform=axes[0].transAxes)
+    axes[0].text(0.01, 0.95, 'CMS',transform=axes[0].transAxes, fontweight='bold')
+    axes[0].text(0.01, 0.91, 'Simulation Preliminary',transform=axes[0].transAxes,fontstyle='italic')
+    y_min, y_max = axes[0].get_ylim()
+    y_tot = y_max/100.0
+    axes[0].set_ylim(top=y_tot*120)
+    axes[0].set_xlim(left=lower,right=upper)
+    #axes[0].legend(frameon=False, fontsize='large', bbox_to_anchor=(1.02, 1.0), loc='upper left')
+    axes[0].legend(frameon=False, fontsize='large')
+    axes[0].set_ylabel(ylabel=ylabel,fontsize=15.0)
+    #axes[0].tick_params(axis='both', labelsize='large')
+    axes[0].tick_params(axis='y', labelsize=15.0)
     # axes[0].set_xscale("log")
     # axes[0].set_xticks(bin_edges[np.isfinite(bin_edges)])
 
     if comparison_name is None:
-        axes[0].set_xlabel(xlabel=xlabel)
+        axes[0].set_xlabel(xlabel=xlabel,fontsize='large')
 
     if plot_info_string is not None:
         if plot_info_string.count("\n") > 9:  # more than 10 lines
@@ -186,15 +237,16 @@ def plot_evaluation_histogram(
                 f"{plot_info_string = }"
             )
         else:
-            axes[0].text(
-                1,
-                1,
-                plot_info_string,
-                horizontalalignment="right",
-                verticalalignment="bottom",
-                transform=axes[0].transAxes,
-                fontsize="xx-small",
-            )
+            pass
+            #axes[0].text(
+            #    1,
+            #    1,
+            #    plot_info_string,
+            #    horizontalalignment="right",
+            #    verticalalignment="bottom",
+            #    transform=axes[0].transAxes,
+            #    fontsize="xx-small",
+            #)
 
     if comparison_name is not None:
         # plotted_something = False
@@ -220,9 +272,14 @@ def plot_evaluation_histogram(
                     )
                     # plotted_something = True
 
+        #axes[1].plot(
+        #    bin_midpoints,
+        #    [1 for _ in range(len(bin_midpoints))],
+        #    "k--",
+        #)
         axes[1].plot(
-            bin_midpoints,
-            [1 for _ in range(len(bin_midpoints))],
+            [lower,upper],
+            [1 for _ in range(len([lower,upper]))],
             "k--",
         )
 
@@ -231,10 +288,13 @@ def plot_evaluation_histogram(
         # ):  # only draw legend if something was plotted to avoid warning
         #     axes[1].legend()
 
-        axes[1].set_ylabel("Ratio of central values")
+        axes[1].set_ylabel(r"Ratio of central" 
+                            "\n"
+                           r"values",fontsize='large')
         axes[1].set_ylim(
             [max(axes[1].get_ylim()[0], 0.8), min(axes[1].get_ylim()[1], 1.2)]
         )
+        axes[1].tick_params(axis='y', labelsize=15.0)
 
         # plotted_something = False
         for name in hist_data.keys():
@@ -264,7 +324,16 @@ def plot_evaluation_histogram(
         # ):  # only draw legend if something was plotted to avoid warning
         #     axes[2].legend()
 
-        axes[2].set_xlabel(xlabel=xlabel)
-        axes[2].set_ylabel("Ratio of error bars")
+        axes[2].set_xlabel(xlabel=xlabel,fontsize=20.0)
+        axes[2].set_ylabel(r"Ratio of error" 
+                            "\n"
+                           r"bars", fontsize='large')
+        axes[2].tick_params(axis='both', labelsize=15.0)
+        #axes[0].ticklabel_format(style='sci')
+        from matplotlib import ticker
+        formatter = ticker.ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True) 
+        formatter.set_powerlimits((-1,4)) 
+        axes[0].yaxis.set_major_formatter(formatter) 
 
     return fig, hist_data

@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+import matplotlib
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,11 +31,17 @@ def plot_2d_histograms_as_3d_bars(
         x_grid, y_grid = np.meshgrid(x_edges[:-1], y_edges[:-1])
 
         x = x_grid.ravel()
+        #print("x ",x)
         y = y_grid.ravel()
+        #print("y ",y)
         z = np.zeros_like(y)
+        #print("z ",z)
         dx = np.tile(np.diff(x_edges), x_grid.shape[0])
+        #print("dx ",dx)
         dy = np.repeat(np.diff(y_edges), y_grid.shape[1])
+        #print("dy ",dy)
         dz = np.nan_to_num(hist.h).T.ravel()
+        #print("dz ",dz)
 
         if z_scaler is not None:
             dz = z_scaler * dz
@@ -47,6 +54,7 @@ def plot_2d_histograms_as_3d_bars(
         # scale each dz to [0,1], and get their rgb values
         rgba = [color_map((k - min_height) / max_height) for k in dz]
 
+        matplotlib.rcParams['font.sans-serif'] = 'Arial'    
         ax = fig.add_subplot(1, len(hists), 1 + i, projection="3d")
 
         ax.bar3d(
@@ -60,6 +68,7 @@ def plot_2d_histograms_as_3d_bars(
             color=rgba,
         )
         ax.set_title(title)
+        #ax.text(0.00, 0.00, 1.01, 'CMS Simulation Preliminary',transform=ax.transAxes)
         if x_label is None:
             x_label = hist.variables[0]
         if y_label is None:
@@ -84,6 +93,7 @@ def plot_2d_histograms_as_3d_surfaces(
     for hist in hists:
         assert len(hist.edges) == 2
 
+    matplotlib.rcParams['font.sans-serif'] = 'Arial'    
     fig = plt.figure(figsize=(20, 10))
     fig.suptitle(fig_title)
 
@@ -115,6 +125,7 @@ def plot_2d_histograms_as_3d_surfaces(
             alpha=0.5,
         )
         ax.set_title(title)
+        ax.text(0.00, 0.00, 1.01, 'CMS Simulation Preliminary',transform=ax.transAxes)
         if x_label is None:
             x_label = hist.variables[0]
         if y_label is None:

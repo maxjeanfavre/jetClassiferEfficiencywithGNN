@@ -55,11 +55,12 @@ def check_df(df: pd.DataFrame):
     check_zero_level_values_for_repeated_values(
         zero_level_values=df.index.get_level_values(level=0).to_numpy()
     )
+    print("df.index.get_level_values(level=0).to_numpy() ",df.index.get_level_values(level=0).to_numpy())
 
     reconstructed_event_n_jets = (
         reconstruct_event_n_jets_from_groupby_zeroth_level_values(df=df)
     )
-
+    print("reconstructed_event_n_jets: ",reconstructed_event_n_jets)
     # make sure the 0th level index is zero based with a step size of 1
     expected_zero_level_values = get_zero_level_values_from_event_n_jets(
         event_n_jets=reconstructed_event_n_jets
@@ -90,15 +91,17 @@ def get_zero_level_values_from_event_n_jets(event_n_jets: np.ndarray):
     if len(event_n_jets) == 0:
         v = np.array([], dtype="int64")
     else:
+        print("event_n_jets ",event_n_jets) #list of number of jets in each event
+        print("np.arange(len(event_n_jets)) ",np.arange(len(event_n_jets)))
         v = np.repeat(np.arange(len(event_n_jets)), event_n_jets)
-
+    print("get_zero_level_values_from_event_n_jets :",v)  #np.array(0,0,0..jets in 0th event,1,1,...jets in 1st event)
     return v
 
 
 @njit
 def get_first_level_values_from_event_n_jets_njit(event_n_jets):
     v = np.array([i for n_jets in event_n_jets for i in range(n_jets)], dtype="int64")
-
+    print("v is ",v) #np.array(0,1,2..jets in 0th event,0,1,2,...jets in 1st event)
     return v
 
 

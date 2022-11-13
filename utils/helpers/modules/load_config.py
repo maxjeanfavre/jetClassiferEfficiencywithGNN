@@ -11,9 +11,11 @@ def load_config(config_type: str, config_name: str):
         )
 
     config_module = importlib.import_module(path)
+    print(config_module) # <module 'configs.model.gnn_variables_1_large_hidden_state' from '/work/krgedia/CMSSW_10_1_0/src/Xbb/python/gnn_b_tagging_efficiency/configs/model/gnn_variables_1_large_hidden_state.py'>
     # this requires that the variables in the config file follow this naming pattern
-    config = getattr(config_module, f"{config_type}_config")
-
+    config = getattr(config_module, f"{config_type}_config") #the module has a variable which is a object with name {type}_config which has ".name" attribute which is kept same as the file name w/o extension.
+    print("getattr(config_module,<config_type>_config ",config)
+    print("config.name ",config.name)
     return config
 
     # this version made problems when pickling the loaded configs

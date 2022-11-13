@@ -52,6 +52,10 @@ class DirectTagging(Model):
             results.name = None
 
             err = pd.Series(data=0, index=jds.df.index, dtype="float64")
+            print("err")
+            print(err)
+            print("results\n",results)
+            print("jds.df\n",jds.df)
 
             predictions.append((results, err))
 

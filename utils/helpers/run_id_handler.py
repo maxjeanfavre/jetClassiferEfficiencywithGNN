@@ -62,6 +62,7 @@ class RunIdHandler:
     @classmethod
     def new_run_id(cls, prefix: Optional[str], bootstrap: bool) -> RunIdHandler:
         run_id = cls.generate_run_id(bootstrap=bootstrap)
+        print("run_id generated is ",run_id)
         inst = cls(run_id=run_id, prefix=prefix)
         return inst
 
@@ -103,6 +104,8 @@ class RunIdHandler:
                         run_ids.append(p.name)
 
             run_ids = sorted(run_ids)
+
+            print("sorted list of run id are ",run_ids)
 
             logger.trace(f"Found {len(run_ids)} start_times in {dir_path}")
 

@@ -15,6 +15,7 @@ def get_tag_working_points(
 
     for i, working_point_config in enumerate(working_points_set_config.working_points):
         tag[jds.df.eval(working_point_config.expression).to_numpy()] = i + 1
+        #print("expression is ",working_point_config.expression, "and tag is ",tag[0:50])
 
     assert tag.dtype == "int64"
     assert np.isfinite(tag).all()

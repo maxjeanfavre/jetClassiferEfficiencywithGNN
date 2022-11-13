@@ -1,5 +1,6 @@
 import json
 import pathlib
+import matplotlib
 from typing import Optional
 
 from utils.configs.dataset import DatasetConfig

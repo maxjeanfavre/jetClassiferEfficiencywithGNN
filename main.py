@@ -92,6 +92,7 @@ def get_parsers():
         help="whether its a bootstrap run",
     )
 
+    
     parser_save_predictions.add_argument(
         "--run_id",
         help="run_id of the model",
@@ -161,7 +162,11 @@ def main():
         "--run_id",
         help="manually set a run_id",
     )
-
+    parser_train.add_argument(
+        "--trained_model_path",
+        help="trained_model_path if available",
+        required = False,
+    )
     args = parser.parse_args()
 
     task = args.task
@@ -202,6 +207,10 @@ def main():
                 except AttributeError:
                     run_id = None
 
+                try:   
+                    trained_model_path = args.trained_model_path
+                except AttributeError:
+                    trained_model_path = None
                 train_handler(
                     dataset_config=dataset_config,
                     dataset_handling_config=dataset_handling_config,
@@ -209,6 +218,7 @@ def main():
                     model_config=model_config,
                     bootstrap=bootstrap,
                     run_id=run_id,
+                    trained_model_path=trained_model_path,
                 )
             elif task == "save_predictions":
                 run_id = args.run_id

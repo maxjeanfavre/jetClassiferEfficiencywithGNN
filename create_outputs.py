@@ -16,7 +16,8 @@ def main():
 
     for dataset_config in [
         TTTo2L2Nu_dataset_config,
-        QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
+        #QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
+       
     ]:
         create_outputs(
             dataset_config=dataset_config,
