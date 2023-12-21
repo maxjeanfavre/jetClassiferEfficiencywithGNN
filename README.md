@@ -20,3 +20,6 @@ The `submit_t3.py` can be used to submit jobs on PSI T3.
 
 # Notes
 - Provided enough storage is available, it makes sense to run the trainings with the `--save_predictions_after_training_prediction_dataset_handling` option. This will produce predictions after the training and saves them. Otherwise one would have to produce predictions during the evaluation which would take too much time (as (1) it would be done during each evaluation instead of once after the training; and (2) parallelization: it would produce predictions in the single evaluation job instead of in each training job)
+
+# Contact
+ Phillip Hummler, Krunal Gedia, Alessandro Calandri
