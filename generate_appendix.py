@@ -194,7 +194,8 @@ def main():
     from configs.dataset.QCD_Pt_300_470_MuEnrichedPt5 import (
         dataset_config as QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
     )
-    from configs.dataset.TTTo2L2Nu import dataset_config as TTTo2L2Nu_dataset_config
+    from configs.dataset.TTT
+2L2Nu import dataset_config as TTTo2L2Nu_dataset_config
     from configs.working_points_set.standard_working_points_set import (
         working_points_set_config as standard_working_points_set_config,
     )

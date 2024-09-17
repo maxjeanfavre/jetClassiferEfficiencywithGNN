@@ -24,7 +24,7 @@ class TestGetTagWorkingPoints:
         n_jets = np.sum(event_n_jets)
 
         df = pd.DataFrame(
-            data={"Jet_btagDeepB": np.random.random(size=n_jets)},
+            data={"Jet_btagDeepFlavB": np.random.random(size=n_jets)},
             index=get_idx_from_event_n_jets(event_n_jets=event_n_jets),
         )
 
@@ -41,8 +41,8 @@ class TestGetTagWorkingPoints:
             working_points=tuple(
                 WorkingPointConfig(
                     name=name,
-                    expression=f"Jet_btagDeepB > {value}",
-                    required_columns=("Jet_btagDeepB",),
+                    expression=f"Jet_btagDeepFlavB > {value}",
+                    required_columns=("Jet_btagDeepFlavB",),
                 )
                 for name, value in working_points.items()
             ),
@@ -54,7 +54,7 @@ class TestGetTagWorkingPoints:
         )
 
         tag_manual = []
-        for value in df["Jet_btagDeepB"].to_numpy():
+        for value in df["Jet_btagDeepFlavB"].to_numpy():
             tag_ = 0
             for i, cut_off_value in enumerate(working_points.values()):
                 if value > cut_off_value:

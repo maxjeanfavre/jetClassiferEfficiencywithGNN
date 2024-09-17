@@ -582,8 +582,8 @@ class GNN(Model):
             logger.debug(f"Number of GPUs: {torch.cuda.device_count()}")
         pytorch_total_params = sum(p.numel() for p in self.estimator.parameters() if p.requires_grad)
         print("pytorch_total_params ",pytorch_total_params)
-        import sys
-        sys.exit()
+        # import sys
+        # sys.exit()
         self.estimator.to(device)
 
         dataloader = self.get_dataloader(

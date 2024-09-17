@@ -64,6 +64,18 @@ def get_parsers():
 
     for p in [parser_train, parser_save_predictions, parser_evaluate]:
         p.add_argument(
+            "--dataset_predi",
+            choices=get_package_names(
+                dir_path=utils.paths.config(
+                    config_type="dataset", config_name="foo", mkdir=False
+                ).parent
+            ),
+            help="name of the dataset for prediction config",
+            required=True,
+        )
+
+    for p in [parser_train, parser_save_predictions, parser_evaluate]:
+        p.add_argument(
             "--working_points_set",
             choices=get_package_names(
                 dir_path=utils.paths.config(
@@ -92,7 +104,7 @@ def get_parsers():
         help="whether its a bootstrap run",
     )
 
-    
+
     parser_save_predictions.add_argument(
         "--run_id",
         help="run_id of the model",
@@ -179,11 +191,17 @@ def main():
 
     if task in ("train", "save_predictions", "evaluate"):
         dataset_handling = args.dataset_handling
+        dataset_predi = args.dataset_predi
         working_points_set = args.working_points_set
 
         dataset_handling_config: DatasetHandlingConfig = load_config(
             config_type="dataset_handling", config_name=dataset_handling
         )
+
+
+        dataset_predi_config: DatasetConfig = load_config(
+            config_type="dataset", config_name=dataset_predi
+        )   
 
         working_points_set_config: WorkingPointsSetConfig = load_config(
             config_type="working_points_set", config_name=working_points_set
@@ -234,6 +252,7 @@ def main():
                 save_predictions_handler(
                     dataset_config=dataset_config,
                     dataset_handling_config=dataset_handling_config,
+                    dataset_predi_config=dataset_predi_config,
                     working_points_set_config=working_points_set_config,
                     model_config=model_config,
                     run_id=run_id,
@@ -274,6 +293,7 @@ def main():
             evaluation_handler(
                 dataset_config=dataset_config,
                 dataset_handling_config=dataset_handling_config,
+                dataset_predi_config=dataset_predi_config,
                 working_points_set_config=working_points_set_config,
                 prediction_dataset_handling_config=prediction_dataset_handling_config,
                 evaluation_model_selection_config=evaluation_model_selection_config,

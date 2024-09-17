@@ -12,18 +12,12 @@ model_config.model_init_kwargs["flavour_embedding_dim"] = 4
 
 model_config.model_init_kwargs["node_features_cols"].extend(
     [
-        "Jet_nConstituents",
         "nJet",
-        "Jet_mass",
-        "Jet_area",
     ]
 )
 
 model_config.model_init_kwargs["preprocessing_pipeline"].column_preprocessors.update(
     {
-        "Jet_nConstituents": Identity(),
         "nJet": Normalizer(),
-        "Jet_mass": Normalizer(),
-        "Jet_area": Normalizer(),
     }
 )

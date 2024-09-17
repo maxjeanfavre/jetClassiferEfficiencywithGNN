@@ -5,17 +5,18 @@ import utils
 from main import get_parsers
 from utils.helpers.modules.package_names import get_package_names
 
-python_executable = "/work/phummler/miniconda3/envs/gnn_efficiency/bin/python"
+python_executable = "/work/mjeanfav/miniconda3/envs/gnn_efficiency/bin/python"
 
 
 def get_bash_run_id_command(bootstrap: bool):
-    return f"""RUNID=$(/work/phummler/miniconda3/envs/gnn_efficiency/bin/python -c "from utils.helpers.run_id_handler import RunIdHandler; print(RunIdHandler.generate_run_id(bootstrap={bootstrap}));" >&1)"""
+    return f"""RUNID=$(/work/mjeanfav/miniconda3/envs/gnn_efficiency/bin/python -c "from utils.helpers.run_id_handler import RunIdHandler; print(RunIdHandler.generate_run_id(bootstrap={bootstrap}));" >&1)"""
 
 
 def get_commands(
     task: str,
     dataset: str,
     dataset_handling: Optional[str],
+    dataset_predi: Optional[str],
     working_points_set: Optional[str],
     model: Optional[str],
     bootstrap: bool,
@@ -31,6 +32,8 @@ def get_commands(
     cmd += f" --dataset={dataset}"
     if dataset_handling is not None:
         cmd += f" --dataset_handling={dataset_handling}"
+    if dataset_predi is not None:
+        cmd += f" --dataset_predi={dataset_predi}"
     if working_points_set is not None:
         cmd += f" --working_points_set={working_points_set}"
     if model is not None:
@@ -58,6 +61,7 @@ def get_commands(
                     task="save_predictions",
                     dataset=dataset,
                     dataset_handling=dataset_handling,
+                    dataset_predi=dataset_predi,
                     working_points_set=working_points_set,
                     model=model,
                     bootstrap=False,  # False as bootstrap is not an argument for parser_save_predictions
@@ -79,6 +83,7 @@ def get_slurm_kwargs(
     task: str,
     dataset: str,
     dataset_handling: Optional[str],
+    dataset_predi: Optional[str],
     working_points_set: Optional[str],
     model: Optional[str],
     bootstrap: Optional[bool],
@@ -293,7 +298,7 @@ def submit_to_slurm(commands: List[str], slurm_kwargs: Dict[str, str]):
 
     s += 'echo "START: $(date)"' + "\n"
 
-    s += "cd /work/phummler/code/" + "\n"
+    s += "cd /work/mjeanfav/jetClassiferEfficiencywithGNN/" + "\n"
 
     for command in commands:
         s += command + "\n"
@@ -311,6 +316,7 @@ def submit_to_t3(
     task: str,
     dataset: str,
     dataset_handling: Optional[str],
+    dataset_predi: Optional[str],
     working_points_set: Optional[str],
     model: Optional[str],
     bootstrap: Optional[bool],
@@ -325,6 +331,7 @@ def submit_to_t3(
         task=task,
         dataset=dataset,
         dataset_handling=dataset_handling,
+        dataset_predi=dataset_predi,
         working_points_set=working_points_set,
         model=model,
         bootstrap=bootstrap,
@@ -339,6 +346,7 @@ def submit_to_t3(
         task=task,
         dataset=dataset,
         dataset_handling=dataset_handling,
+        dataset_predi=dataset_predi,
         working_points_set=working_points_set,
         model=model,
         bootstrap=bootstrap,
@@ -408,6 +416,11 @@ def main():
         dataset_handling = None
 
     try:
+        dataset_predi = args.dataset_predi
+    except AttributeError:
+        dataset_predi = None
+
+    try:
         working_points_set = args.working_points_set
     except AttributeError:
         working_points_set = None
@@ -446,6 +459,7 @@ def main():
         task=task,
         dataset=dataset,
         dataset_handling=dataset_handling,
+        dataset_predi=dataset_predi,
         working_points_set=working_points_set,
         model=model,
         bootstrap=bootstrap,

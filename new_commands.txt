@@ -1,0 +1,39 @@
+Examples of commands to run the framework
+
+
+Extraction (modify the flag dataset to extract other dataset)
+
+python submit_t3.py extract --dataset=QCD_Pt_300_470_MuEnrichedPt5
+python submit_t3.py extract --dataset=TTTo2L2Nu
+python submit_t3.py extract --dataset=TTToSemiLeptonic
+python submit_t3.py extract --dataset=TTToHadronic
+
+
+
+Training
+
+Structure of the commands :
+python submit_t3.py train --dataset=...(dataset used for training) --dataset_handling=... --dataset_predi=...(dataset used for the prediction) --working_points_set=...(wp set used(tight,medium,loose,all)) --model=... (--bootstrap) --save_predictions_after_training_prediction_dataset_handling no_changes
+
+python submit_t3.py train --dataset=TTToHadronic --dataset_handling=pt_30_1000_eta_25_cut_dataset_handling --dataset_predi=TTToHadronic --working_points_set=all_working_points_set --model=direct_tagging --save_predictions_after_training_prediction_dataset_handling no_changes   
+python submit_t3.py train --dataset=TTToHadronic --dataset_handling=pt_30_1000_eta_25_cut_dataset_handling --dataset_predi=TTToHadronic --working_points_set=all_working_points_set --model=eff_map_pt_eta --save_predictions_after_training_prediction_dataset_handling no_changes      
+python submit_t3.py train --dataset=TTToHadronic --dataset_handling=pt_30_1000_eta_25_cut_dataset_handling --dataset_predi=TTToHadronic --working_points_set=all_working_points_set --model=gnn_node_mass --save_predictions_after_training_prediction_dataset_handling no_changes
+
+
+
+Prediciton on a pretrained model
+
+A model has already been trained with one dataset and we want to make prediction on another dataset
+
+python main.py save_predictions --dataset=...(dataset of the pretrained model) --dataset_handling=... --dataset_predi=...(dataset for prediciton) --working_points_set=... --model=... --run_id=...(need to be adapted with the run id of the pretrained model) --prediction_dataset_handling=no_changes
+
+python main.py save_predictions --dataset=QCD_Pt_300_470_MuEnrichedPt5 --dataset_handling=pt_30_1000_eta_25_cut_dataset_handling --dataset_predi=TTTo2L2Nu --working_points_set=all_working_points_set --model=gnn_node_mass --run_id=bootstrap_20240524_033556_153713__f9228af1-3c4a-47ca-afb4-b41de8d9cc27 --prediction_dataset_handling=no_changes
+
+
+
+Evaluation 
+
+python submit_t3.py evaluate --dataset=...(used for training) --dataset_handling=... --dataset_predi=...(used for prediction) --working_points_set=... --prediction_dataset_handling=no_changes --evaluation_model_selection=...(models to evaluates) --evaluation_data_manipulation ...
+
+python submit_t3.py evaluate --dataset=TTToSemiLeptonic --dataset_handling=pt_30_1000_eta_25_cut_dataset_handling --dataset_predi=QCD_Pt_300_470_MuEnrichedPt5 --working_points_set=all_working_points_set --prediction_dataset_handling=no_changes --evaluation_model_selection=gnn_node_mass --evaluation_data_manipulation events_valid_btagDeepB events_valid_btagDeepB_pt_eta_cut no_changes pt_eta_cut
+

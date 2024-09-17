@@ -17,9 +17,9 @@ class Filenames:
     # predictions
     @staticmethod
     def model_prediction(
-        working_point_name: str, prediction_dataset_handling_name: str
+        dataset_name: str, working_point_name: str, prediction_dataset_handling_name: str
     ) -> str:
-        return f"prediction_{working_point_name}_{prediction_dataset_handling_name}.npz"
+        return f"prediction_{dataset_name}_{working_point_name}_{prediction_dataset_handling_name}.npz"
 
     # configs
     dataset_config_pickle = "dataset_config.pkl"

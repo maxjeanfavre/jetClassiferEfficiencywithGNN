@@ -1,4 +1,4 @@
-import copy
+0;10;1cimport copy
 
 from configs.model.gnn_TT import model_config as gnn_model_config
 from utils.preprocessing.identity import Identity
@@ -10,18 +10,12 @@ model_config.name = "gnn_extraip"
 
 model_config.model_init_kwargs["node_features_cols"].extend(
     [
-        "Jet_nConstituents",
         "nJet",
-        "Jet_mass",
-        "Jet_area",
     ]
 )
 
 model_config.model_init_kwargs["preprocessing_pipeline"].column_preprocessors.update(
     {
-        "Jet_nConstituents": Identity(),
         "nJet": Normalizer(),
-        "Jet_mass": Normalizer(),
-        "Jet_area": Normalizer(),
     }
 )

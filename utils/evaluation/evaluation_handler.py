@@ -1,3 +1,5 @@
+#Dataset predi and dataset train can be different
+
 import copy
 import json
 import pickle
@@ -32,6 +34,7 @@ from utils.helpers.run_id_handler import RunIdHandler
 def evaluation_handler(
     dataset_config: DatasetConfig,
     dataset_handling_config: DatasetHandlingConfig,
+    dataset_predi_config: DatasetConfig,
     working_points_set_config: WorkingPointsSetConfig,
     prediction_dataset_handling_config: PredictionDatasetHandlingConfig,
     evaluation_model_selection_config: EvaluationModelSelectionConfig,
@@ -64,7 +67,7 @@ def evaluation_handler(
     logger.debug(f"run_id: {run_id_handler.run_id}")
 
     jds = JetEventsDataset.read_in(
-        dataset_config=dataset_config,
+        dataset_config=dataset_predi_config,
         branches=None,
     )
 
@@ -162,9 +165,12 @@ def evaluation_handler(
                         mkdir=True,
                     )
 
+                    print("model_dir_path : ",model_dir_path)
+
                     mp = ModelPredictions.load(
                         dir_path=model_dir_path,
                         filename=utils.filenames.model_prediction(
+                            dataset_name=dataset_predi_config.name,
                             working_point_name=working_point_config.name,
                             prediction_dataset_handling_name=prediction_dataset_handling_config.name,
                         ),
@@ -211,6 +217,7 @@ def evaluation_handler(
                     mp = ModelPredictions.load(
                         dir_path=model_dir_path,
                         filename=utils.filenames.model_prediction(
+                            dataset_name=dataset_predi_config.name,
                             working_point_name=working_point_config.name,
                             prediction_dataset_handling_name=prediction_dataset_handling_config.name,
                         ),

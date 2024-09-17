@@ -25,7 +25,7 @@ def create_deepcsv_discriminator_histogram(
             branches=None,
         )
 
-    valid_btagDeepB_selection = jds.df.eval("0 <= Jet_btagDeepB <= 1")
+    valid_btagDeepB_selection = jds.df.eval("0 <= Jet_btagDeepFlavB <= 1")
 
     flavours = sorted(set(jds.df["Jet_hadronFlavour"].to_numpy()))
     var_data = []
@@ -35,7 +35,7 @@ def create_deepcsv_discriminator_histogram(
         var_data.append(
             jds.df.loc[
                 (valid_btagDeepB_selection) & (jds.df["Jet_hadronFlavour"] == flavour),
-                "Jet_btagDeepB",
+                "Jet_btagDeepFlavB",
             ].to_numpy()
         )
         label_data.append(utils.flavours_niceify[flavour])

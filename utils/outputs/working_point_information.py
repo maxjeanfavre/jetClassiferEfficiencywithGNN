@@ -18,7 +18,7 @@ def save_working_point_information(
     if jds is None:
         jds = JetEventsDataset.read_in(
             dataset_config=dataset_config,
-            branches=("Jet_btagDeepB", "Jet_hadronFlavour"),
+            branches=("Jet_btagDeepFlavB", "Jet_hadronFlavour"),
         )
 
     data = {}

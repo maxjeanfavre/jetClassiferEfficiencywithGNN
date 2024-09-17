@@ -36,13 +36,13 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
             display_name="GNN variables 1",
             only_bootstrap_runs=True,
         ),
-        EvaluationModelConfig(
-            model_config=gnn_variables_1_large_hidden_state_model_config,
-            run_selection="all",
-            run_aggregation="median",
-            is_comparison_base=False,
-            display_name="GNN variables 1 large hidden state",
-            only_bootstrap_runs=True,
-        ),
+        #EvaluationModelConfig(
+        #    model_config=gnn_variables_1_large_hidden_state_model_config,
+        #    run_selection="all",
+        #    run_aggregation="median",
+        #    is_comparison_base=False,
+        #    display_name="GNN variables 1 large hidden state",
+        #    only_bootstrap_runs=True,
+        #),
     ],
 )

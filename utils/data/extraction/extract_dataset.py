@@ -46,11 +46,9 @@ def extract_dataset(
             "Jet_Pt",
             "Jet_eta",
             "Jet_phi",
-            "Jet_btagDeepB",
+            "Jet_btagDeepFlavB",
             "Jet_hadronFlavour",
-            "Jet_nConstituents",
             "Jet_mass",
-            "Jet_area",
         ]
 
     branches = list(set(branches))

@@ -25,9 +25,6 @@ branches_niceify = {
     "Jet_Pt": r"$p_\mathrm{T}$ (GeV)",
     "Jet_eta": r"$\eta$",
     "Jet_phi": r"$\phi$",
-    "Jet_mass": r"Jet mass (GeV)",
-    "Jet_area": r"Jet area",
-    "Jet_nConstituents": r"Jet constituents",
     "Jet_hadronFlavour": "Flavour",
 }
 

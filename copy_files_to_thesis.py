@@ -6,6 +6,8 @@ from configs.dataset.QCD_Pt_300_470_MuEnrichedPt5 import (
     dataset_config as QCD_Pt_300_470_MuEnrichedPt5_dataset_config,
 )
 from configs.dataset.TTTo2L2Nu import dataset_config as TTTo2L2Nu_dataset_config
+from configs.dataset.TTToSemiLeptonic import dataset_config as TTToSemiLeptonic_dataset_config
+from configs.dataset.TTToHadronic import dataset_config as TTToHadronic_dataset_config
 from configs.dataset_handling.standard_dataset_handling import (
     dataset_handling_config as standard_dataset_handling_config,
 )

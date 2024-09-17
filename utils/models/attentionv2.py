@@ -134,11 +134,11 @@ class GraphAttentionV2Layer(nn.Module):
         # $$\overrightarrow{{g_r}^k_i} = \mathbf{W_r}^k \overrightarrow{h_i}$$
         # for each head.
         # We do two linear transformations and then split it up for each head.
-        print("h.size() ",h.size())
+        #print("h.size() ",h.size())
         #print("h ",h)
         g_l = self.linear_l(h).view(n_nodes, self.n_heads, self.n_hidden)
         #print("self.linear_l(h)[:10] ",self.linear_l(h)[:3])
-        print("g_l.shape ",g_l.size())
+        #print("g_l.shape ",g_l.size())
         g_r = self.linear_r(h).view(n_nodes, self.n_heads, self.n_hidden)
 
         # #### Calculate attention score
@@ -193,10 +193,10 @@ class GraphAttentionV2Layer(nn.Module):
         # \overrightarrow{{g_l}_2} + \overrightarrow{{g_r}_2},
         # \dots, \overrightarrow{{g_l}_2}  + \overrightarrow{{g_r}_N}, ...\}$$
         g_sum = g_l_repeat + g_r_repeat_interleave
-        print("g_sum before view ", g_sum.size())
+        #print("g_sum before view ", g_sum.size())
         # Reshape so that `g_sum[i, j]` is $\overrightarrow{{g_l}_i} + \overrightarrow{{g_r}_j}$
         g_sum = g_sum.view(n_nodes, n_nodes, self.n_heads, self.n_hidden)
-        print("g_sum ",g_sum.size())
+        #print("g_sum ",g_sum.size())
 
         # Calculate
         # $$e_{ij} = \mathbf{a}^\top \text{LeakyReLU} \Big(
@@ -205,7 +205,7 @@ class GraphAttentionV2Layer(nn.Module):
         # \Big] \Big)$$
         # `e` is of shape `[n_nodes, n_nodes, n_heads, 1]`
         e = self.attn(self.activation(g_sum))
-        print("self.attn(self.activation(g_sum))  ",e.size())
+        #print("self.attn(self.activation(g_sum))  ",e.size())
         # Remove the last dimension of size `1`
         e = e.squeeze(-1)
 
@@ -217,8 +217,8 @@ class GraphAttentionV2Layer(nn.Module):
         # Mask $e_{ij}$ based on adjacency matrix.
         # $e_{ij}$ is set to $- \infty$ if there is no edge from $i$ to $j$.
         e = e.masked_fill(adj_mat == 0, float('-inf'))
-        print("adj_mat.size() ",adj_mat.size())
-        print("adj_mat ",adj_mat.squeeze(-1))
+        #print("adj_mat.size() ",adj_mat.size())
+        #print("adj_mat ",adj_mat.squeeze(-1))
 
         # We then normalize attention scores (or coefficients)
         # $$\alpha_{ij} = \text{softmax}_j(e_{ij}) =
@@ -229,11 +229,11 @@ class GraphAttentionV2Layer(nn.Module):
         # We do this by setting unconnected $e_{ij}$ to $- \infty$ which
         # makes $\exp(e_{ij}) \sim 0$ for unconnected pairs.
         a = self.softmax(e)
-        print("self.softmax(e) 0 ",a[:,:,0])
-        print("self.softmax(e) 1 ",a[:,:,1])
-        print("self.softmax(e) 2 ",a[:,:,2])
-        print("g_r ",g_r)
-        print("--------------------------------------------------------------------")
+        #print("self.softmax(e) 0 ",a[:,:,0])
+        #print("self.softmax(e) 1 ",a[:,:,1])
+        #print("self.softmax(e) 2 ",a[:,:,2])
+        #print("g_r ",g_r)
+        #print("--------------------------------------------------------------------")
 
         # Apply dropout regularization
         a = self.dropout(a)

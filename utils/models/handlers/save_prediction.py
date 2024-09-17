@@ -17,6 +17,7 @@ from utils.logging import set_up_logging_sinks
 def save_predictions_handler(
     dataset_config: DatasetConfig,
     dataset_handling_config: DatasetHandlingConfig,
+    dataset_predi_config: DatasetConfig,
     working_points_set_config: WorkingPointsSetConfig,
     model_config: ModelConfig,
     run_id: str,
@@ -62,7 +63,7 @@ def save_predictions_handler(
     )
 
     jds = JetEventsDataset.read_in(
-        dataset_config=dataset_config,
+        dataset_config=dataset_predi_config,
         branches=branches_to_read_in,
     )
 
@@ -115,19 +116,35 @@ def save_predictions_handler(
     for working_point_config, working_point_predictions in zip(
         working_points_set_config.working_points, predictions
     ):
-        mp = ModelPredictions(
-            res=working_point_predictions[0], err=working_point_predictions[1]
+        # Verify if the prediction file already exists, if not create it
+        filename=utils.filenames.model_prediction(
+            dataset_name=dataset_predi_config.name,
+            working_point_name=working_point_config.name,
+            prediction_dataset_handling_name=prediction_dataset_handling_config.name,
         )
+        filename = filename + ".npz"
+        
+        if (model_dir_path / filename).exists():
+            logger.warning(
+                f"Prediction file already exists : {filename}"
+            )
+        else:
+            logger.debug(f"Creating prediction file: {filename}")
+            
+            mp = ModelPredictions(
+                res=working_point_predictions[0], err=working_point_predictions[1]
+            )
 
-        mp.save(
-            dir_path=model_dir_path,
-            filename=utils.filenames.model_prediction(
-                working_point_name=working_point_config.name,
-                prediction_dataset_handling_name=prediction_dataset_handling_config.name,
-            ),
-            event_n_jets=jds_test.event_n_jets,
-        )
+            mp.save(
+                dir_path=model_dir_path,
+                filename=utils.filenames.model_prediction(
+                    dataset_name=dataset_predi_config.name,
+                    working_point_name=working_point_config.name,
+                    prediction_dataset_handling_name=prediction_dataset_handling_config.name,
+                ),
+                event_n_jets=jds_test.event_n_jets,
+            )
 
-        logger.debug(f"Saved predictions of working point: {working_point_config.name}")
+            logger.debug(f"Saved predictions of working point: {working_point_config.name}")
 
     logger.info("Done with saving predictions")

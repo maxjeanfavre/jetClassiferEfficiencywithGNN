@@ -100,9 +100,9 @@ def plot_evaluation_histogram(
     #bin indices means every jet has a bin number associated.
     #matplotlib.rcParams['font.sans-serif'] = 'Arial'   
     #print(matplotlib.rcParams)
-    matplotlib.rcParams['font.family'] = 'Helvetica'
-    matplotlib.rcParams['font.sans-serif'] = 'Helvetica'
-    matplotlib.rc('font', serif='Helvetica')
+    matplotlib.rcParams['font.family'] = 'DejaVu Sans'
+    matplotlib.rcParams['font.sans-serif'] = 'DejaVu Sans'
+    matplotlib.rc('font', serif='Sanslvetica')
 
     #print("sett",matplotlib.rcParams)
     figsize = (9.5, 9.5)
@@ -148,7 +148,7 @@ def plot_evaluation_histogram(
 
     #print("weights are ",weights)
     #weights['GNN with GATv2'] = weights.pop('GNN with GATv2')
-    weights['GNN'] = weights.pop('GNN')
+    #weights['GNN 1'] = weights.pop('GNN 1')
     #print("new weights are ",weights)
     for name, weight in weights.items():
         (

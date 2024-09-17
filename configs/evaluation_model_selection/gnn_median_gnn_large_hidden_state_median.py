@@ -6,6 +6,15 @@ from configs.model.gnn import model_config as gnn_model_config
 from configs.model.gnn_large_hidden_state import (
     model_config as gnn_large_hidden_state_model_config,
 )
+from configs.model.gnn_variables_1 import (
+    model_config as gnn_variables_1_model_config,
+)
+from configs.model.gnn_variables_2 import (
+    model_config as gnn_variables_2_model_config,
+)
+from configs.model.gnn_with_attentionv2 import (
+    model_config as gnn_with_attentionv2_model_config,
+)
 from utils.configs.evaluation_model import EvaluationModelConfig
 from utils.configs.evaluation_model_selection import EvaluationModelSelectionConfig
 
@@ -19,13 +28,13 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
             is_comparison_base=True,
             display_name="Direct tagging",
         ),
-        EvaluationModelConfig(
-            model_config=eff_map_pt_eta_model_config,
-            run_selection="only_latest",
-            run_aggregation="individual",
-            is_comparison_base=False,
-            display_name="Efficiency map",
-        ),
+        #EvaluationModelConfig(
+        #    model_config=eff_map_pt_eta_model_config,
+        #    run_selection="only_latest",
+        #    run_aggregation="individual",
+        #    is_comparison_base=False,
+        #    display_name="Efficiency map",
+        #),
         EvaluationModelConfig(
             model_config=gnn_model_config,
             run_selection="all",
@@ -34,13 +43,37 @@ evaluation_model_selection_config = EvaluationModelSelectionConfig(
             display_name="GNN 1",
             only_bootstrap_runs=True,
         ),
+        #EvaluationModelConfig(
+        #    model_config=gnn_large_hidden_state_model_config,
+        #    run_selection="all",
+        #    run_aggregation="median",
+        #    is_comparison_base=False,
+        #    display_name="GNN 1 large hidden state",
+        #    only_bootstrap_runs=True,
+        #),
         EvaluationModelConfig(
-            model_config=gnn_large_hidden_state_model_config,
+            model_config=gnn_variables_1_model_config,
             run_selection="all",
             run_aggregation="median",
             is_comparison_base=False,
-            display_name="GNN 1 large hidden state",
+            display_name="GNN variables 1",
             only_bootstrap_runs=True,
         ),
+        EvaluationModelConfig(
+            model_config=gnn_variables_2_model_config,
+            run_selection="all",
+            run_aggregation="median",
+            is_comparison_base=False,
+            display_name="GNN variables 2",
+            only_bootstrap_runs=True,
+        ),
+        #EvaluationModelConfig(
+        #    model_config=gnn_with_attentionv2_model_config,
+        #    run_selection="all",
+        #    run_aggregation="median",
+        #    is_comparison_base=False,
+        #    display_name="GNN with GATv2",
+        #    only_bootstrap_runs=True,
+        #),
     ],
 )

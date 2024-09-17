@@ -18,12 +18,12 @@ model_config = ModelConfig(
     data_manipulators=(
         EvalExpressionFilter(
             description=(
-                "Keeps events with valid btagDeepB value (0 <= Jet_btagDeepB <= 1)"
+                "Keeps events with valid btagDeepB value (0 <= Jet_btagDeepFlavB <= 1)"
             ),
             active_modes=("train",),
-            expression="0 <= Jet_btagDeepB <= 1",
+            expression="0 <= Jet_btagDeepFlavB <= 1",
             filter_full_event=True,
-            required_columns=("Jet_btagDeepB",),
+            required_columns=("Jet_btagDeepFlavB",),
         ),
     ),
     model_cls=GNN,
@@ -32,11 +32,8 @@ model_config = ModelConfig(
             "Jet_Pt",
             "Jet_eta",
             "Jet_phi",
-            "Jet_nConstituents",
             "nJet",
-            "Jet_mass",
-            "Jet_area",
-        ],
+        ]
         "flavour_col": "Jet_hadronFlavour",
         "preprocessing_pipeline": PreprocessingPipeline(
             column_preprocessors={
@@ -44,10 +41,7 @@ model_config = ModelConfig(
                 "Jet_eta": Normalizer(),
                 "Jet_phi": Normalizer(),
                 "Jet_hadronFlavour": Identity(),
-                "Jet_nConstituents": Identity(),
                 "nJet": Normalizer(),
-                "Jet_mass": Normalizer(),
-                "Jet_area": Normalizer(),
             }
         ),
         "edge_hidden_state_sizes": [256, 256, 256, 256, 256],

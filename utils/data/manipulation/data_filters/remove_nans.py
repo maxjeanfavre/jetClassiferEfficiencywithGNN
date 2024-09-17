@@ -36,7 +36,7 @@ class RemoveNaNs(DataFilter):
         logger.trace("Determining columns with nan values")
         cols_with_nan_values = {
             col: nan_values
-            for col, nan_values in jds.df.isna().sum(axis=0).iteritems()
+            for col, nan_values in jds.df.isna().sum(axis=0).items()
             if nan_values > 0
         }
         if cols_with_nan_values:

@@ -18,12 +18,12 @@ model_config = ModelConfig(
     data_manipulators=(
         EvalExpressionFilter(
             description=(
-                "Keeps events with valid btagDeepB value (0 <= Jet_btagDeepB <= 1)"
+                "Keeps events with valid btagDeepB value (0 <= Jet_btagDeepFlavB <= 1)"
             ),
             active_modes=("train",),
-            expression="0 <= Jet_btagDeepB <= 1",
+            expression="0 <= Jet_btagDeepFlavB <= 1",
             filter_full_event=True,
-            required_columns=("Jet_btagDeepB",),
+            required_columns=("Jet_btagDeepFlavB",),
         ),
     ),
     model_cls=GNN,
